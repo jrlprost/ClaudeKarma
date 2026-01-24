@@ -211,102 +211,103 @@ function extractUsageFromPageProps(pageProps) {
 }
 
 /**
- * Extract usage data from raw HTML using smarter pattern matching
+ * Extract usage data from Claude.ai HTML using specific patterns
  */
 function extractUsageFromHTML(html) {
-  // Strategy 1: Look for percentages near usage-related keywords
-  const usagePatterns = [
-    // Pattern: "X% of your limit" or "X% used"
-    /(\d+(?:\.\d+)?)\s*%\s*(?:of\s+(?:your\s+)?limit|used|usage)/gi,
-    // Pattern: "used X%" or "usage: X%"
-    /(?:used|usage)[:\s]+(\d+(?:\.\d+)?)\s*%/gi,
-    // Pattern: percentage in aria-label or title containing "usage"
-    /(?:aria-label|title)="[^"]*?(\d+(?:\.\d+)?)\s*%[^"]*?"/gi
+  const result = {
+    currentSession: { percentage: 0, resetTimestamp: null },
+    weeklyLimits: {
+      allModels: { percentage: 0, resetTimestamp: null, resetDay: null, resetTime: null },
+      sonnetOnly: { percentage: 0, resetTimestamp: null, resetDay: null, resetTime: null }
+    }
+  };
+
+  // Strategy 1: Look for "X % utilisés" or "X% used" patterns (the actual usage text)
+  // This is the most reliable - it's the displayed text
+  const usedPatterns = [
+    /(\d+)\s*%\s*(?:utilisés?|used)/gi,  // "39 % utilisés" or "39% used"
+    /(\d+)\s*%\s*(?:of\s+)?(?:limit|quota)/gi  // "39% of limit"
   ];
 
-  let usagePercentages = [];
-
-  for (const pattern of usagePatterns) {
+  const usedValues = [];
+  for (const pattern of usedPatterns) {
     let match;
     while ((match = pattern.exec(html)) !== null) {
-      const value = parseFloat(match[1]);
-      if (value >= 0 && value <= 100) {
-        usagePercentages.push(value);
-      }
+      usedValues.push(parseInt(match[1], 10));
     }
   }
 
-  console.log('[ClaudeKarma] Usage-related percentages:', usagePercentages);
+  console.log('[ClaudeKarma] Found "X% used" values:', usedValues);
 
-  // Strategy 2: If no specific patterns found, look for percentages
-  // that are NOT common CSS values (0, 50, 100)
-  if (usagePercentages.length === 0) {
-    const allPercentages = [];
-    const percentRegex = /(\d+(?:\.\d+)?)\s*%/g;
-    let match;
+  // Strategy 2: Look for progress bar widths in style="width: X%;"
+  // These appear right before the percentage text
+  const widthPattern = /style="width:\s*(\d+)%/gi;
+  const widthValues = [];
+  let match;
+  while ((match = widthPattern.exec(html)) !== null) {
+    widthValues.push(parseInt(match[1], 10));
+  }
 
-    while ((match = percentRegex.exec(html)) !== null) {
-      const value = parseFloat(match[1]);
-      if (value >= 0 && value <= 100) {
-        allPercentages.push(value);
-      }
-    }
+  console.log('[ClaudeKarma] Found progress bar widths:', widthValues);
 
-    // Filter out common CSS values and duplicates
-    const cssCommon = new Set([0, 50, 100, 25, 75, 33, 66, 10, 20, 30, 40, 60, 70, 80, 90]);
-    const uniqueNonCss = allPercentages.filter(function(v) {
-      // Keep values that have decimals (like 99.99) or are not common CSS
-      return v % 1 !== 0 || !cssCommon.has(v);
-    });
+  // Use "X% used" values if found, otherwise use progress bar widths
+  const percentages = usedValues.length >= 3 ? usedValues : widthValues;
 
-    console.log('[ClaudeKarma] Non-CSS percentages:', uniqueNonCss);
-    console.log('[ClaudeKarma] All percentages count:', allPercentages.length);
+  if (percentages.length >= 3) {
+    // Order in Claude's HTML: Current Session, All Models, Sonnet Only
+    result.currentSession.percentage = percentages[0];
+    result.weeklyLimits.allModels.percentage = percentages[1];
+    result.weeklyLimits.sonnetOnly.percentage = percentages[2];
 
-    // Use unique non-CSS values, or fall back to looking for specific ranges
-    if (uniqueNonCss.length > 0) {
-      usagePercentages = uniqueNonCss;
-    } else {
-      // Last resort: find percentages that appear only a few times (likely actual data)
-      const counts = {};
-      allPercentages.forEach(function(v) { counts[v] = (counts[v] || 0) + 1; });
+    console.log('[ClaudeKarma] Extracted: Session=' + percentages[0] +
+                '%, AllModels=' + percentages[1] +
+                '%, Sonnet=' + percentages[2] + '%');
+  } else if (percentages.length > 0) {
+    // Partial data
+    result.currentSession.percentage = percentages[0] || 0;
+    result.weeklyLimits.allModels.percentage = percentages[1] || 0;
+    result.weeklyLimits.sonnetOnly.percentage = percentages[2] || 0;
+  }
 
-      // Get values that appear 1-3 times (not repeated CSS patterns)
-      usagePercentages = Object.keys(counts)
-        .filter(function(k) { return counts[k] <= 3 && counts[k] >= 1; })
-        .map(function(k) { return parseFloat(k); })
-        .sort(function(a, b) { return a - b; });
+  // Strategy 3: Extract reset times
+  // French: "Réinitialisation dans 2 h 5 min" or "Réinitialisation ven. 10:00"
+  // English: "Resets in 2h 5min" or "Resets Friday 10:00"
+  const resetPatterns = [
+    /[Rr](?:é|e)initialis(?:ation|e)\s+(?:dans\s+)?(\d+)\s*h\s*(\d+)?\s*min/gi,  // "dans 2 h 5 min"
+    /[Rr]esets?\s+(?:in\s+)?(\d+)\s*h\s*(\d+)?\s*m/gi,  // "Resets in 2h 5min"
+  ];
 
-      console.log('[ClaudeKarma] Low-frequency percentages:', usagePercentages);
+  for (const pattern of resetPatterns) {
+    const resetMatch = pattern.exec(html);
+    if (resetMatch) {
+      const hours = parseInt(resetMatch[1], 10) || 0;
+      const minutes = parseInt(resetMatch[2], 10) || 0;
+      result.currentSession.resetTimestamp = Date.now() + (hours * 60 + minutes) * 60 * 1000;
+      console.log('[ClaudeKarma] Session reset in ' + hours + 'h ' + minutes + 'min');
+      break;
     }
   }
 
-  if (usagePercentages.length > 0) {
-    // Take the first meaningful percentage as current session usage
-    const sessionPct = usagePercentages[0] || 0;
-
-    return {
-      currentSession: {
-        percentage: sessionPct,
-        resetTimestamp: null
-      },
-      weeklyLimits: {
-        allModels: {
-          percentage: usagePercentages[1] || sessionPct,
-          resetTimestamp: null,
-          resetDay: null,
-          resetTime: null
-        },
-        sonnetOnly: {
-          percentage: usagePercentages[2] || 0,
-          resetTimestamp: null,
-          resetDay: null,
-          resetTime: null
-        }
-      }
-    };
+  // Look for day-based resets (weekly)
+  const dayResetPattern = /[Rr](?:é|e)initialis(?:ation|e)\s+(lun|mar|mer|jeu|ven|sam|dim|mon|tue|wed|thu|fri|sat|sun)[^\d]*(\d{1,2}:\d{2})/gi;
+  const dayMatches = [];
+  let dayMatch;
+  while ((dayMatch = dayResetPattern.exec(html)) !== null) {
+    dayMatches.push({ day: dayMatch[1], time: dayMatch[2] });
   }
 
-  return null;
+  if (dayMatches.length >= 1) {
+    result.weeklyLimits.allModels.resetDay = dayMatches[0].day;
+    result.weeklyLimits.allModels.resetTime = dayMatches[0].time;
+  }
+  if (dayMatches.length >= 2) {
+    result.weeklyLimits.sonnetOnly.resetDay = dayMatches[1].day;
+    result.weeklyLimits.sonnetOnly.resetTime = dayMatches[1].time;
+  }
+
+  console.log('[ClaudeKarma] Weekly resets:', dayMatches);
+
+  return result;
 }
 
 /**
