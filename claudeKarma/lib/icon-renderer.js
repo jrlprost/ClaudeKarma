@@ -87,7 +87,7 @@ export function drawDualProgressRing(size, sessionProgress, weeklyProgress, opti
 
   if (showSpinner) {
     // Spinning loading indicator (uses outer ring position)
-    const spinnerColor = COLORS.accent || '#6366f1';
+    const spinnerColor = COLORS.accent || '#a855f7';
     const spinnerLength = Math.PI * 0.6;
 
     // Outer spinner

@@ -45,8 +45,8 @@ export const COLORS = {
   card: '#1f1f23',
   textPrimary: '#fafafa',
   textSecondary: '#a1a1aa',
-  accent: '#6366f1',
-  accentLight: '#818cf8',
+  accent: '#a855f7',      // Neon purple - vibrant and visible on dark backgrounds
+  accentLight: '#c084fc', // Lighter neon purple
 
   // Progress ring background
   ringBackground: '#27272a',

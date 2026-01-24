@@ -20,9 +20,9 @@
   --text-secondary: #a1a1aa;
   --text-muted: #71717a;
 
-  --accent: #6366f1;
-  --accent-light: #818cf8;
-  --accent-glow: rgba(99, 102, 241, 0.25);
+  --accent: #a855f7;
+  --accent-light: #c084fc;
+  --accent-glow: rgba(168, 85, 247, 0.25);
 
   /* Status colors */
   --status-low: #22c55e;
