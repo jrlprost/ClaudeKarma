@@ -1,0 +1,65 @@
+{
+  "manifest_version": 3,
+  "name": "ClaudeKarma",
+  "version": "1.0.0",
+  "description": "Monitor your Claude AI usage directly from the toolbar. See session limits, weekly quotas, and reset times at a glance.",
+  
+  "author": "JR",
+  
+  "icons": {
+    "16": "icons/icon-16.png",
+    "32": "icons/icon-32.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  },
+  
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_icon": {
+      "16": "icons/icon-16.png",
+      "32": "icons/icon-32.png",
+      "48": "icons/icon-48.png"
+    },
+    "default_title": "ClaudeKarma"
+  },
+  
+  "background": {
+    "service_worker": "background/service-worker.js",
+    "scripts": ["background/service-worker.js"],
+    "type": "module"
+  },
+  
+  "permissions": [
+    "storage",
+    "alarms",
+    "offscreen"
+  ],
+  
+  "host_permissions": [
+    "https://claude.ai/*"
+  ],
+  
+  "content_scripts": [
+    {
+      "matches": ["https://claude.ai/settings/usage*"],
+      "js": ["content/content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  
+  "web_accessible_resources": [
+    {
+      "resources": ["icons/*"],
+      "matches": ["<all_urls>"]
+    }
+  ],
+  
+  "default_locale": "en",
+  
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "claudekarma@jrtech.dev",
+      "strict_min_version": "109.0"
+    }
+  }
+}

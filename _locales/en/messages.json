@@ -1,0 +1,126 @@
+{
+  "extensionName": {
+    "message": "ClaudeKarma",
+    "description": "Extension name"
+  },
+  "extensionDescription": {
+    "message": "Monitor your Claude AI usage directly from the toolbar. See session limits, weekly quotas, and reset times at a glance.",
+    "description": "Extension description"
+  },
+  "currentSession": {
+    "message": "Current Session",
+    "description": "Header for current session usage section"
+  },
+  "weeklyLimits": {
+    "message": "Weekly Limits",
+    "description": "Header for weekly limits section"
+  },
+  "allModels": {
+    "message": "All Models",
+    "description": "Label for all models weekly limit"
+  },
+  "sonnetOnly": {
+    "message": "Sonnet Only",
+    "description": "Label for Sonnet-only weekly limit"
+  },
+  "resetsIn": {
+    "message": "Resets in $TIME$",
+    "description": "Reset countdown text",
+    "placeholders": {
+      "time": {
+        "content": "$1",
+        "example": "4h 39min"
+      }
+    }
+  },
+  "resetsOn": {
+    "message": "Resets $DAY$ at $TIME$",
+    "description": "Reset date/time text",
+    "placeholders": {
+      "day": {
+        "content": "$1",
+        "example": "Friday"
+      },
+      "time": {
+        "content": "$2",
+        "example": "10:00 AM"
+      }
+    }
+  },
+  "lastUpdated": {
+    "message": "Last updated: $TIME$",
+    "description": "Last update time",
+    "placeholders": {
+      "time": {
+        "content": "$1",
+        "example": "1 minute ago"
+      }
+    }
+  },
+  "justNow": {
+    "message": "just now",
+    "description": "Time indicator for very recent updates"
+  },
+  "minuteAgo": {
+    "message": "1 minute ago",
+    "description": "Time indicator for 1 minute ago"
+  },
+  "minutesAgo": {
+    "message": "$COUNT$ minutes ago",
+    "description": "Time indicator for multiple minutes ago",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "5"
+      }
+    }
+  },
+  "hourAgo": {
+    "message": "1 hour ago",
+    "description": "Time indicator for 1 hour ago"
+  },
+  "hoursAgo": {
+    "message": "$COUNT$ hours ago",
+    "description": "Time indicator for multiple hours ago",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "refreshButton": {
+    "message": "Refresh",
+    "description": "Refresh button tooltip"
+  },
+  "loading": {
+    "message": "Loading...",
+    "description": "Loading indicator text"
+  },
+  "noData": {
+    "message": "No data available",
+    "description": "Shown when no usage data is cached"
+  },
+  "pleaseLogin": {
+    "message": "Please log in to Claude.ai to see your usage data.",
+    "description": "Message shown when user is not logged in"
+  },
+  "visitUsagePage": {
+    "message": "Visit Usage Page",
+    "description": "Link text to open Claude usage page"
+  },
+  "errorFetching": {
+    "message": "Error fetching usage data. Please try again.",
+    "description": "Error message for fetch failures"
+  },
+  "notificationHighUsage": {
+    "message": "Claude usage at $PERCENT$%",
+    "description": "Notification for high usage",
+    "placeholders": {
+      "percent": {
+        "content": "$1",
+        "example": "90"
+      }
+    }
+  }
+}

@@ -1,0 +1,28 @@
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Local settings
+*.local.json
+
+# Temp files
+*.tmp
+*.log
+
+# Archives
+*.zip
+
+# Claude settings (don't sync to GitHub)
+.claude/

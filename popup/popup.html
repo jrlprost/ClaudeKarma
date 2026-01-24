@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=320">
+  <title>ClaudeKarma</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <header class="header">
+      <h1 class="title">ClaudeKarma</h1>
+      <button id="refresh-btn" class="refresh-btn" title="Refresh">
+        <svg class="refresh-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/>
+          <path d="M21 3v5h-5"/>
+        </svg>
+      </button>
+    </header>
+
+    <!-- Loading State -->
+    <div id="loading-state" class="loading-state hidden">
+      <div class="spinner"></div>
+      <span>Loading...</span>
+    </div>
+
+    <!-- Error State -->
+    <div id="error-state" class="error-state hidden">
+      <p id="error-message">Error fetching data</p>
+      <a href="https://claude.ai/settings/usage" target="_blank" class="link">Visit Usage Page</a>
+    </div>
+
+    <!-- Not Logged In State -->
+    <div id="login-state" class="login-state hidden">
+      <p>Please log in to Claude.ai to see your usage data.</p>
+      <a href="https://claude.ai" target="_blank" class="link">Go to Claude.ai</a>
+    </div>
+
+    <!-- Main Content -->
+    <main id="main-content" class="main-content">
+      <!-- Current Session Card -->
+      <section class="card">
+        <h2 class="card-title">Current Session</h2>
+        <div class="progress-container">
+          <div class="progress-bar">
+            <div id="session-progress" class="progress-fill" style="width: 0%"></div>
+          </div>
+          <span id="session-percentage" class="percentage">0%</span>
+        </div>
+        <p id="session-reset" class="reset-text">--</p>
+      </section>
+
+      <!-- Weekly Limits Card -->
+      <section class="card">
+        <h2 class="card-title">Weekly Limits</h2>
+
+        <!-- All Models -->
+        <div class="limit-row">
+          <span class="limit-label">All Models</span>
+          <div class="progress-container">
+            <div class="progress-bar progress-bar-small">
+              <div id="all-models-progress" class="progress-fill" style="width: 0%"></div>
+            </div>
+            <span id="all-models-percentage" class="percentage">0%</span>
+          </div>
+        </div>
+
+        <!-- Sonnet Only -->
+        <div class="limit-row">
+          <span class="limit-label">Sonnet Only</span>
+          <div class="progress-container">
+            <div class="progress-bar progress-bar-small">
+              <div id="sonnet-progress" class="progress-fill" style="width: 0%"></div>
+            </div>
+            <span id="sonnet-percentage" class="percentage">0%</span>
+          </div>
+        </div>
+
+        <p id="weekly-reset" class="reset-text">--</p>
+      </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <span id="last-updated">Last updated: --</span>
+    </footer>
+  </div>
+
+  <script src="popup.js" type="module"></script>
+</body>
+</html>
