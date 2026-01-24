@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>ClaudeKarma Logo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Product+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      background: #0d0d0f;
+    }
+    .logo-container {
+      width: 700px;
+      height: 700px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #0d0d0f;
+      position: relative;
+    }
+    .gauge-container {
+      position: relative;
+      width: 500px;
+      height: 500px;
+    }
+    .gauge {
+      width: 100%;
+      height: 100%;
+      filter: drop-shadow(0 0 20px rgba(34, 197, 94, 0.4));
+    }
+    .gauge-content {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      display: flex;
+      align-items: baseline;
+      justify-content: center;
+    }
+    .gauge-value {
+      font-family: 'Google Sans', 'Product Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: 220px;
+      font-weight: 600;
+      color: #fafafa;
+      line-height: 1;
+      letter-spacing: -0.02em;
+    }
+    .gauge-unit {
+      font-family: 'Google Sans', 'Product Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: 56px;
+      font-weight: 500;
+      color: #a1a1aa;
+      margin-left: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div class="logo-container">
+    <div class="gauge-container">
+      <svg class="gauge" viewBox="0 0 120 120">
+        <!-- Background track (single ring) -->
+        <circle
+          cx="60" cy="60" r="52"
+          fill="none"
+          stroke="rgba(255,255,255,0.06)"
+          stroke-width="8"
+        />
+        <!-- Progress arc (65%) -->
+        <circle
+          cx="60" cy="60" r="52"
+          fill="none"
+          stroke="url(#gaugeGradient)"
+          stroke-width="8"
+          stroke-linecap="round"
+          stroke-dasharray="327"
+          stroke-dashoffset="114.45"
+          transform="rotate(-90 60 60)"
+        />
+
+        <!-- Gradient definitions -->
+        <defs>
+          <linearGradient id="gaugeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#22c55e"/>
+            <stop offset="100%" stop-color="#4ade80"/>
+          </linearGradient>
+        </defs>
+      </svg>
+      <div class="gauge-content">
+        <span class="gauge-value">CK</span>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
