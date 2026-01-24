@@ -211,38 +211,93 @@ function extractUsageFromPageProps(pageProps) {
 }
 
 /**
- * Extract usage data from raw HTML using string matching
+ * Extract usage data from raw HTML using smarter pattern matching
  */
 function extractUsageFromHTML(html) {
-  // Look for percentage patterns like "45%" or "45 %"
-  const percentages = [];
-  const percentRegex = /(\d+(?:\.\d+)?)\s*%/g;
-  let match;
+  // Strategy 1: Look for percentages near usage-related keywords
+  const usagePatterns = [
+    // Pattern: "X% of your limit" or "X% used"
+    /(\d+(?:\.\d+)?)\s*%\s*(?:of\s+(?:your\s+)?limit|used|usage)/gi,
+    // Pattern: "used X%" or "usage: X%"
+    /(?:used|usage)[:\s]+(\d+(?:\.\d+)?)\s*%/gi,
+    // Pattern: percentage in aria-label or title containing "usage"
+    /(?:aria-label|title)="[^"]*?(\d+(?:\.\d+)?)\s*%[^"]*?"/gi
+  ];
 
-  while ((match = percentRegex.exec(html)) !== null) {
-    const value = parseFloat(match[1]);
-    if (value >= 0 && value <= 100) {
-      percentages.push(value);
+  let usagePercentages = [];
+
+  for (const pattern of usagePatterns) {
+    let match;
+    while ((match = pattern.exec(html)) !== null) {
+      const value = parseFloat(match[1]);
+      if (value >= 0 && value <= 100) {
+        usagePercentages.push(value);
+      }
     }
   }
 
-  console.log('[ClaudeKarma] Found percentages in HTML:', percentages);
+  console.log('[ClaudeKarma] Usage-related percentages:', usagePercentages);
 
-  if (percentages.length > 0) {
+  // Strategy 2: If no specific patterns found, look for percentages
+  // that are NOT common CSS values (0, 50, 100)
+  if (usagePercentages.length === 0) {
+    const allPercentages = [];
+    const percentRegex = /(\d+(?:\.\d+)?)\s*%/g;
+    let match;
+
+    while ((match = percentRegex.exec(html)) !== null) {
+      const value = parseFloat(match[1]);
+      if (value >= 0 && value <= 100) {
+        allPercentages.push(value);
+      }
+    }
+
+    // Filter out common CSS values and duplicates
+    const cssCommon = new Set([0, 50, 100, 25, 75, 33, 66, 10, 20, 30, 40, 60, 70, 80, 90]);
+    const uniqueNonCss = allPercentages.filter(function(v) {
+      // Keep values that have decimals (like 99.99) or are not common CSS
+      return v % 1 !== 0 || !cssCommon.has(v);
+    });
+
+    console.log('[ClaudeKarma] Non-CSS percentages:', uniqueNonCss);
+    console.log('[ClaudeKarma] All percentages count:', allPercentages.length);
+
+    // Use unique non-CSS values, or fall back to looking for specific ranges
+    if (uniqueNonCss.length > 0) {
+      usagePercentages = uniqueNonCss;
+    } else {
+      // Last resort: find percentages that appear only a few times (likely actual data)
+      const counts = {};
+      allPercentages.forEach(function(v) { counts[v] = (counts[v] || 0) + 1; });
+
+      // Get values that appear 1-3 times (not repeated CSS patterns)
+      usagePercentages = Object.keys(counts)
+        .filter(function(k) { return counts[k] <= 3 && counts[k] >= 1; })
+        .map(function(k) { return parseFloat(k); })
+        .sort(function(a, b) { return a - b; });
+
+      console.log('[ClaudeKarma] Low-frequency percentages:', usagePercentages);
+    }
+  }
+
+  if (usagePercentages.length > 0) {
+    // Take the first meaningful percentage as current session usage
+    const sessionPct = usagePercentages[0] || 0;
+
     return {
       currentSession: {
-        percentage: percentages[0] || 0,
+        percentage: sessionPct,
         resetTimestamp: null
       },
       weeklyLimits: {
         allModels: {
-          percentage: percentages[1] || 0,
+          percentage: usagePercentages[1] || sessionPct,
           resetTimestamp: null,
           resetDay: null,
           resetTime: null
         },
         sonnetOnly: {
-          percentage: percentages[2] || 0,
+          percentage: usagePercentages[2] || 0,
           resetTimestamp: null,
           resetDay: null,
           resetTime: null
