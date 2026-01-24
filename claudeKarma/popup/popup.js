@@ -1,9 +1,8 @@
 /**
  * ClaudeKarma - Popup Script
  *
- * Displays usage data in the popup UI.
- * Reads data from storage and updates UI elements.
- * Handles refresh button and countdown timers.
+ * Displays usage data in the popup UI with premium animations.
+ * Features a circular gauge for session limit and stat cards for weekly limits.
  */
 
 // Message types
@@ -13,27 +12,67 @@ const MESSAGE_TYPES = {
   USAGE_DATA_UPDATED: 'usageDataUpdated'
 };
 
+// Quick tips for random display
+const QUICK_TIPS = [
+  "Be specific and clear in your prompts for better results.",
+  "Break complex tasks into smaller, manageable steps.",
+  "Provide context and examples to help Claude understand.",
+  "Ask Claude to explain its reasoning when needed.",
+  "Request specific formats like bullets, tables, or code blocks.",
+  "Iterate and refine your prompts based on responses.",
+  "Use Claude for brainstorming before drafting.",
+  "Set constraints for more focused outputs.",
+  "Start new chats for unrelated topics to avoid confusion.",
+  "Use Claude Projects for persistent context across sessions."
+];
+
+// Gauge configuration
+const GAUGE_CIRCUMFERENCE = 327; // 2 * PI * 52 (radius)
+
+// Color configurations for different usage levels
+const STATUS_COLORS = {
+  low: { start: '#22c55e', end: '#4ade80', glow: 'rgba(34, 197, 94, 0.5)' },
+  medium: { start: '#eab308', end: '#facc15', glow: 'rgba(234, 179, 8, 0.5)' },
+  high: { start: '#f97316', end: '#fb923c', glow: 'rgba(249, 115, 22, 0.5)' },
+  critical: { start: '#ef4444', end: '#f87171', glow: 'rgba(239, 68, 68, 0.5)' }
+};
+
 // DOM Elements
 const elements = {
   loadingState: document.getElementById('loading-state'),
   errorState: document.getElementById('error-state'),
   loginState: document.getElementById('login-state'),
+  setupState: document.getElementById('setup-state'),
   mainContent: document.getElementById('main-content'),
   errorMessage: document.getElementById('error-message'),
   refreshBtn: document.getElementById('refresh-btn'),
 
-  // Session
-  sessionProgress: document.getElementById('session-progress'),
+  // Setup
+  autoDetectBtn: document.getElementById('auto-detect-btn'),
+  autoDetectBtnText: document.querySelector('#auto-detect-btn span'),
+  orgIdInput: document.getElementById('org-id-input'),
+  saveOrgBtn: document.getElementById('save-org-btn'),
+  settingsBtn: document.getElementById('settings-btn'),
+
+  // Tips
+  tipsBtn: document.getElementById('tips-btn'),
+  tipsNewDot: document.getElementById('tips-new-dot'),
+  tipText: document.getElementById('tip-text'),
+  seeMoreTips: document.getElementById('see-more-tips'),
+
+  // Gauge
+  gaugeProgress: document.getElementById('gauge-progress'),
+  gaugeStop1: document.getElementById('gauge-stop-1'),
+  gaugeStop2: document.getElementById('gauge-stop-2'),
   sessionPercentage: document.getElementById('session-percentage'),
   sessionReset: document.getElementById('session-reset'),
 
-  // Weekly - All Models
+  // Weekly Stats
   allModelsProgress: document.getElementById('all-models-progress'),
   allModelsPercentage: document.getElementById('all-models-percentage'),
-
-  // Weekly - Sonnet
-  sonnetProgress: document.getElementById('sonnet-progress'),
-  sonnetPercentage: document.getElementById('sonnet-percentage'),
+  modelLabel: document.getElementById('model-label'),
+  modelProgress: document.getElementById('model-progress'),
+  modelPercentage: document.getElementById('model-percentage'),
   weeklyReset: document.getElementById('weekly-reset'),
 
   // Footer
@@ -47,58 +86,49 @@ let countdownInterval = null;
 // UI State Management
 // ============================================
 
-/**
- * Show loading state
- */
-function showLoading() {
-  elements.loadingState.classList.remove('hidden');
+function hideAllStates() {
+  elements.loadingState.classList.add('hidden');
   elements.errorState.classList.add('hidden');
   elements.loginState.classList.add('hidden');
+  elements.setupState.classList.add('hidden');
   elements.mainContent.classList.add('hidden');
 }
 
-/**
- * Show error state
- * @param {string} message - Error message to display
- */
+function showLoading() {
+  hideAllStates();
+  elements.loadingState.classList.remove('hidden');
+}
+
 function showError(message) {
-  elements.loadingState.classList.add('hidden');
+  hideAllStates();
   elements.errorState.classList.remove('hidden');
-  elements.loginState.classList.add('hidden');
-  elements.mainContent.classList.add('hidden');
   elements.errorMessage.textContent = message;
 }
 
-/**
- * Show login prompt
- */
 function showLoginPrompt() {
-  elements.loadingState.classList.add('hidden');
-  elements.errorState.classList.add('hidden');
+  hideAllStates();
   elements.loginState.classList.remove('hidden');
-  elements.mainContent.classList.add('hidden');
 }
 
-/**
- * Show main content
- */
+function showSetup() {
+  hideAllStates();
+  elements.setupState.classList.remove('hidden');
+}
+
 function showMainContent() {
-  elements.loadingState.classList.add('hidden');
-  elements.errorState.classList.add('hidden');
-  elements.loginState.classList.add('hidden');
+  hideAllStates();
   elements.mainContent.classList.remove('hidden');
+  displayRandomTip();
 }
 
 // ============================================
-// Progress Bar Updates
+// Progress & Gauge Updates
 // ============================================
 
 /**
- * Get CSS class for progress percentage
- * @param {number} percentage - 0-100
- * @returns {string} CSS class name
+ * Get status level based on percentage
  */
-function getProgressClass(percentage) {
+function getStatusLevel(percentage) {
   if (percentage < 50) return 'low';
   if (percentage < 75) return 'medium';
   if (percentage < 90) return 'high';
@@ -106,33 +136,60 @@ function getProgressClass(percentage) {
 }
 
 /**
- * Update a progress bar
- * @param {HTMLElement} progressEl - Progress fill element
- * @param {HTMLElement} percentageEl - Percentage text element
- * @param {number} percentage - 0-100
+ * Update the main circular gauge
  */
-function updateProgressBar(progressEl, percentageEl, percentage) {
+function updateGauge(percentage) {
   const pct = Math.min(100, Math.max(0, percentage || 0));
-  progressEl.style.width = `${pct}%`;
-  percentageEl.textContent = `${Math.round(pct)}%`;
+  const offset = GAUGE_CIRCUMFERENCE - (pct / 100) * GAUGE_CIRCUMFERENCE;
 
-  // Update color class
-  progressEl.className = 'progress-fill ' + getProgressClass(pct);
+  // Animate the gauge
+  if (elements.gaugeProgress) {
+    elements.gaugeProgress.style.strokeDashoffset = offset;
+  }
+
+  // Update the percentage text
+  if (elements.sessionPercentage) {
+    elements.sessionPercentage.textContent = Math.round(pct);
+  }
+
+  // Update gradient colors based on status
+  const status = getStatusLevel(pct);
+  const colors = STATUS_COLORS[status];
+
+  if (elements.gaugeStop1) {
+    elements.gaugeStop1.setAttribute('stop-color', colors.start);
+  }
+  if (elements.gaugeStop2) {
+    elements.gaugeStop2.setAttribute('stop-color', colors.end);
+  }
+
+  // Update gauge glow color
+  const gaugeEl = document.querySelector('.gauge');
+  if (gaugeEl) {
+    gaugeEl.style.setProperty('--gauge-glow', colors.glow);
+  }
+}
+
+/**
+ * Update a stat bar
+ */
+function updateStatBar(progressEl, percentageEl, percentage) {
+  const pct = Math.min(100, Math.max(0, percentage || 0));
+
+  if (progressEl) {
+    progressEl.style.width = `${pct}%`;
+    progressEl.className = 'stat-fill ' + getStatusLevel(pct);
+  }
+
+  if (percentageEl) {
+    percentageEl.textContent = `${Math.round(pct)}%`;
+  }
 }
 
 // ============================================
 // Time Formatting
 // ============================================
 
-/**
- * Format a countdown for display
- *
- * TODO: This is a user contribution opportunity!
- * Customize the format to match your preferences.
- *
- * @param {number} timestamp - Reset timestamp
- * @returns {string} Formatted countdown (e.g., "4h 39min")
- */
 function formatCountdown(timestamp) {
   if (!timestamp) return '--';
 
@@ -152,17 +209,12 @@ function formatCountdown(timestamp) {
 
   if (hours > 0) {
     const remainingMinutes = minutes % 60;
-    return `${hours}h ${remainingMinutes}min`;
+    return `${hours}h ${remainingMinutes}m`;
   }
 
-  return `${minutes}min`;
+  return `${minutes}m`;
 }
 
-/**
- * Format reset info for display
- * @param {Object} resetInfo - Reset info object
- * @returns {string} Formatted reset text
- */
 function formatResetInfo(resetInfo) {
   if (!resetInfo) return '--';
 
@@ -182,11 +234,6 @@ function formatResetInfo(resetInfo) {
   return '--';
 }
 
-/**
- * Format "last updated" time
- * @param {number} timestamp - Last fetch timestamp
- * @returns {string} Formatted time ago
- */
 function formatTimeAgo(timestamp) {
   if (!timestamp) return '--';
 
@@ -196,8 +243,8 @@ function formatTimeAgo(timestamp) {
   const hours = Math.floor(minutes / 60);
 
   if (minutes < 1) return 'just now';
-  if (minutes === 1) return '1 minute ago';
-  if (minutes < 60) return `${minutes} minutes ago`;
+  if (minutes === 1) return '1 min ago';
+  if (minutes < 60) return `${minutes} min ago`;
   if (hours === 1) return '1 hour ago';
   return `${hours} hours ago`;
 }
@@ -206,10 +253,6 @@ function formatTimeAgo(timestamp) {
 // Data Rendering
 // ============================================
 
-/**
- * Render usage data to UI
- * @param {Object} data - Usage data object
- */
 function renderUsageData(data) {
   if (!data) {
     showError('No data available');
@@ -221,35 +264,55 @@ function renderUsageData(data) {
     return;
   }
 
+  if (data.error === 'needs_setup') {
+    showSetup();
+    return;
+  }
+
+  // Check if we have actual usage data
+  if (!data.currentSession && !data.lastFetchedAt) {
+    showSetup();
+    return;
+  }
+
   showMainContent();
 
-  // Current Session
+  // Session gauge
   const sessionPct = data.currentSession?.percentage ?? 0;
-  updateProgressBar(elements.sessionProgress, elements.sessionPercentage, sessionPct);
-  elements.sessionReset.textContent = formatResetInfo(data.currentSession);
+  updateGauge(sessionPct);
+  if (elements.sessionReset) {
+    elements.sessionReset.textContent = formatResetInfo(data.currentSession);
+  }
 
   // Weekly - All Models
   const allModelsPct = data.weeklyLimits?.allModels?.percentage ?? 0;
-  updateProgressBar(elements.allModelsProgress, elements.allModelsPercentage, allModelsPct);
+  updateStatBar(elements.allModelsProgress, elements.allModelsPercentage, allModelsPct);
 
-  // Weekly - Sonnet Only
-  const sonnetPct = data.weeklyLimits?.sonnetOnly?.percentage ?? 0;
-  updateProgressBar(elements.sonnetProgress, elements.sonnetPercentage, sonnetPct);
+  // Weekly - Model-specific (Sonnet/Opus/etc)
+  const modelData = data.weeklyLimits?.modelSpecific || data.weeklyLimits?.sonnetOnly;
+  const modelPct = modelData?.percentage ?? 0;
+  const modelName = modelData?.modelName || 'Model';
+
+  if (elements.modelLabel) {
+    elements.modelLabel.textContent = modelName;
+  }
+  updateStatBar(elements.modelProgress, elements.modelPercentage, modelPct);
 
   // Weekly Reset
-  elements.weeklyReset.textContent = formatResetInfo(data.weeklyLimits?.allModels);
+  if (elements.weeklyReset) {
+    elements.weeklyReset.textContent = formatResetInfo(data.weeklyLimits?.allModels);
+  }
 
   // Last Updated
-  elements.lastUpdated.textContent = `Last updated: ${formatTimeAgo(data.lastFetchedAt)}`;
+  if (elements.lastUpdated) {
+    elements.lastUpdated.textContent = `Updated ${formatTimeAgo(data.lastFetchedAt)}`;
+  }
 }
 
 // ============================================
 // Data Fetching
 // ============================================
 
-/**
- * Fetch usage data from storage
- */
 async function fetchData() {
   showLoading();
 
@@ -267,16 +330,12 @@ async function fetchData() {
   }
 }
 
-/**
- * Trigger a refresh
- */
 async function triggerRefresh() {
   elements.refreshBtn.classList.add('spinning');
 
   try {
     await chrome.runtime.sendMessage({ type: MESSAGE_TYPES.REQUEST_REFRESH });
 
-    // Wait a moment then refresh display
     setTimeout(() => {
       fetchData();
       elements.refreshBtn.classList.remove('spinning');
@@ -289,13 +348,123 @@ async function triggerRefresh() {
 }
 
 // ============================================
+// Setup Handlers
+// ============================================
+
+async function handleAutoDetect() {
+  if (!elements.autoDetectBtn) return;
+
+  elements.autoDetectBtn.disabled = true;
+  if (elements.autoDetectBtnText) {
+    elements.autoDetectBtnText.textContent = 'Detecting...';
+  }
+
+  try {
+    await chrome.runtime.sendMessage({ type: MESSAGE_TYPES.REQUEST_REFRESH });
+
+    setTimeout(async () => {
+      await fetchData();
+      elements.autoDetectBtn.disabled = false;
+      if (elements.autoDetectBtnText) {
+        elements.autoDetectBtnText.textContent = 'Auto-detect Account';
+      }
+    }, 3000);
+  } catch (error) {
+    console.error('[ClaudeKarma Popup] Auto-detect failed:', error);
+    elements.autoDetectBtn.disabled = false;
+    if (elements.autoDetectBtnText) {
+      elements.autoDetectBtnText.textContent = 'Auto-detect Account';
+    }
+    showError('Auto-detect failed. Please enter your Org ID manually.');
+  }
+}
+
+async function handleSaveOrgId() {
+  if (!elements.orgIdInput || !elements.saveOrgBtn) return;
+
+  const orgId = elements.orgIdInput.value.trim();
+
+  // Validate UUID format
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  if (!uuidRegex.test(orgId)) {
+    showError('Invalid Organization ID format');
+    return;
+  }
+
+  elements.saveOrgBtn.disabled = true;
+  elements.saveOrgBtn.textContent = 'Saving...';
+
+  try {
+    await chrome.runtime.sendMessage({ type: 'SET_ORG_ID', orgId: orgId });
+
+    setTimeout(async () => {
+      await fetchData();
+      elements.saveOrgBtn.disabled = false;
+      elements.saveOrgBtn.textContent = 'Save';
+    }, 2000);
+  } catch (error) {
+    console.error('[ClaudeKarma Popup] Save org ID failed:', error);
+    elements.saveOrgBtn.disabled = false;
+    elements.saveOrgBtn.textContent = 'Save';
+    showError('Failed to save Organization ID');
+  }
+}
+
+function handleSettings() {
+  showSetup();
+}
+
+// ============================================
+// Tips Page Handler
+// ============================================
+
+async function checkTipsViewed() {
+  try {
+    const result = await chrome.storage.local.get('tipsPageViewed');
+    if (result.tipsPageViewed) {
+      // User has visited tips page, hide the new dot
+      elements.tipsNewDot?.classList.add('hidden');
+    }
+  } catch (error) {
+    console.error('[ClaudeKarma Popup] Error checking tips viewed:', error);
+  }
+}
+
+function handleTipsClick() {
+  // Open tips page in new tab
+  chrome.tabs.create({ url: chrome.runtime.getURL('tips/tips.html') });
+  // Hide the new dot immediately
+  elements.tipsNewDot?.classList.add('hidden');
+}
+
+// ============================================
+// Random Tip Display
+// ============================================
+
+function displayRandomTip() {
+  if (elements.tipText) {
+    const randomIndex = Math.floor(Math.random() * QUICK_TIPS.length);
+    elements.tipText.textContent = QUICK_TIPS[randomIndex];
+  }
+}
+
+// ============================================
 // Event Listeners
 // ============================================
 
-// Refresh button
-elements.refreshBtn.addEventListener('click', triggerRefresh);
+elements.refreshBtn?.addEventListener('click', triggerRefresh);
+elements.autoDetectBtn?.addEventListener('click', handleAutoDetect);
+elements.saveOrgBtn?.addEventListener('click', handleSaveOrgId);
+elements.settingsBtn?.addEventListener('click', handleSettings);
+elements.tipsBtn?.addEventListener('click', handleTipsClick);
+elements.seeMoreTips?.addEventListener('click', handleTipsClick);
 
-// Listen for data updates from service worker
+elements.orgIdInput?.addEventListener('keypress', (e) => {
+  if (e.key === 'Enter') {
+    handleSaveOrgId();
+  }
+});
+
 chrome.runtime.onMessage.addListener((message) => {
   if (message.type === MESSAGE_TYPES.USAGE_DATA_UPDATED) {
     renderUsageData(message.data);
@@ -306,19 +475,12 @@ chrome.runtime.onMessage.addListener((message) => {
 // Countdown Timer
 // ============================================
 
-/**
- * Start countdown update interval
- */
 function startCountdownTimer() {
-  // Update every minute
   countdownInterval = setInterval(() => {
     fetchData();
   }, 60000);
 }
 
-/**
- * Stop countdown timer
- */
 function stopCountdownTimer() {
   if (countdownInterval) {
     clearInterval(countdownInterval);
@@ -330,11 +492,7 @@ function stopCountdownTimer() {
 // Initialization
 // ============================================
 
-// Initial fetch
 fetchData();
-
-// Start countdown timer
 startCountdownTimer();
-
-// Clean up on popup close
+checkTipsViewed();
 window.addEventListener('unload', stopCountdownTimer);

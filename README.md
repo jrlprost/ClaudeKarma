@@ -1,6 +1,6 @@
-# ClaudeKarma
+# ClaudeKarma — Claude Usage Tracker
 
-A cross-browser extension that displays your Claude AI usage statistics directly in the browser toolbar. Part of the Karma extension family.
+Track your Claude AI usage limits directly from the browser toolbar. Monitor 5-hour session and 7-day quotas with real-time progress rings. Never hit the limit unexpectedly again.
 
 ## Features
 

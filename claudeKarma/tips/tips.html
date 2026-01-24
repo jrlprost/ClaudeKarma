@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Claude Tips & Tricks — ClaudeKarma</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="tips.css">
+</head>
+<body>
+  <div class="container">
+    <!-- Background effects -->
+    <div class="bg-gradient"></div>
+    <div class="bg-grid"></div>
+
+    <!-- Main content -->
+    <main class="content">
+      <!-- Logo -->
+      <div class="logo">
+        <svg width="64" height="64" viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5" opacity="0.3"/>
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10" stroke="url(#logoGrad)" stroke-width="2.5" stroke-linecap="round"/>
+          <defs>
+            <linearGradient id="logoGrad" x1="2" y1="12" x2="12" y2="22">
+              <stop offset="0%" stop-color="#818cf8"/>
+              <stop offset="100%" stop-color="#6366f1"/>
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
+
+      <!-- Header text -->
+      <h1 class="title">Claude Tips & Tricks</h1>
+      <p class="subtitle">Master the art of prompting</p>
+
+      <!-- Quick Tips Grid -->
+      <section class="section">
+        <h2 class="section-title">Quick Tips</h2>
+        <div class="tips-grid">
+          <div class="tip-card">
+            <div class="tip-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M12 16v-4"/>
+                <path d="M12 8h.01"/>
+              </svg>
+            </div>
+            <h3 class="tip-title">Be Specific</h3>
+            <p class="tip-text">Clear, detailed prompts yield better results than vague requests.</p>
+          </div>
+
+          <div class="tip-card">
+            <div class="tip-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+              </svg>
+            </div>
+            <h3 class="tip-title">Break It Down</h3>
+            <p class="tip-text">Split complex tasks into smaller, manageable steps for Claude.</p>
+          </div>
+
+          <div class="tip-card">
+            <div class="tip-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+              </svg>
+            </div>
+            <h3 class="tip-title">Give Context</h3>
+            <p class="tip-text">Provide background information and examples for better understanding.</p>
+          </div>
+
+          <div class="tip-card">
+            <div class="tip-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/>
+                <polyline points="12 6 12 12 16 14"/>
+              </svg>
+            </div>
+            <h3 class="tip-title">Iterate</h3>
+            <p class="tip-text">Refine your prompts based on Claude's responses for optimal results.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Best Practices Accordion -->
+      <section class="section">
+        <h2 class="section-title">Best Practices</h2>
+        <div class="accordion">
+          <div class="accordion-item">
+            <button class="accordion-header">
+              <div class="accordion-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 20h9"/>
+                  <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/>
+                </svg>
+              </div>
+              <span class="accordion-title">Effective Prompting</span>
+              <svg class="accordion-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 12 15 18 9"/>
+              </svg>
+            </button>
+            <div class="accordion-content">
+              <ul class="practice-list">
+                <li>Start with a clear goal or question in mind</li>
+                <li>Use specific language rather than abstract terms</li>
+                <li>Ask Claude to explain its reasoning when needed</li>
+                <li>Request specific output formats (bullets, tables, code blocks)</li>
+                <li>Set constraints to get more focused responses</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="accordion-item">
+            <button class="accordion-header">
+              <div class="accordion-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="16 18 22 12 16 6"/>
+                  <polyline points="8 6 2 12 8 18"/>
+                </svg>
+              </div>
+              <span class="accordion-title">Working with Code</span>
+              <svg class="accordion-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 12 15 18 9"/>
+              </svg>
+            </button>
+            <div class="accordion-content">
+              <ul class="practice-list">
+                <li>Include the programming language and framework context</li>
+                <li>Share relevant code snippets for context</li>
+                <li>Ask for explanations of complex code sections</li>
+                <li>Request code reviews with specific focus areas</li>
+                <li>Use Claude for debugging by describing the expected vs actual behavior</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="accordion-item">
+            <button class="accordion-header">
+              <div class="accordion-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                  <line x1="9" y1="10" x2="15" y2="10"/>
+                </svg>
+              </div>
+              <span class="accordion-title">Long Conversations</span>
+              <svg class="accordion-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 12 15 18 9"/>
+              </svg>
+            </button>
+            <div class="accordion-content">
+              <ul class="practice-list">
+                <li>Summarize previous context when conversations get long</li>
+                <li>Start new chats for unrelated topics to avoid confusion</li>
+                <li>Use Claude Projects for persistent context and files</li>
+                <li>Reference specific parts of earlier responses when following up</li>
+                <li>Keep track of what Claude knows vs what you need to re-explain</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Resources Section -->
+      <section class="section">
+        <h2 class="section-title">Resources</h2>
+        <div class="resources-grid">
+          <a href="https://docs.anthropic.com/en/docs" target="_blank" class="resource-card">
+            <div class="resource-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/>
+              </svg>
+            </div>
+            <div class="resource-text">
+              <strong>Claude Docs</strong>
+              <span>Official documentation</span>
+            </div>
+            <svg class="resource-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="7" y1="17" x2="17" y2="7"/>
+              <polyline points="7 7 17 7 17 17"/>
+            </svg>
+          </a>
+
+          <a href="https://docs.anthropic.com/en/prompt-library/library" target="_blank" class="resource-card">
+            <div class="resource-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
+                <polyline points="14 2 14 8 20 8"/>
+                <line x1="16" y1="13" x2="8" y2="13"/>
+                <line x1="16" y1="17" x2="8" y2="17"/>
+                <line x1="10" y1="9" x2="8" y2="9"/>
+              </svg>
+            </div>
+            <div class="resource-text">
+              <strong>Prompt Library</strong>
+              <span>Ready-to-use prompts</span>
+            </div>
+            <svg class="resource-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="7" y1="17" x2="17" y2="7"/>
+              <polyline points="7 7 17 7 17 17"/>
+            </svg>
+          </a>
+
+          <a href="https://www.anthropic.com/news" target="_blank" class="resource-card">
+            <div class="resource-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M19 5c-1.5 0-2.8 1.4-3 2-3.5-1.5-11-.3-11 5 0 1.8 0 3 2 4.5V20h4v-2h3v2h4v-4c1-.5 1.7-1 2-2h2v-4h-2c0-1-.5-1.5-1-2V5z"/>
+                <path d="M2 9v1c0 1.1.9 2 2 2h1"/>
+                <path d="M16 11h.01"/>
+              </svg>
+            </div>
+            <div class="resource-text">
+              <strong>Anthropic Blog</strong>
+              <span>Latest news & updates</span>
+            </div>
+            <svg class="resource-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="7" y1="17" x2="17" y2="7"/>
+              <polyline points="7 7 17 7 17 17"/>
+            </svg>
+          </a>
+
+          <a href="https://docs.anthropic.com/en/api" target="_blank" class="resource-card">
+            <div class="resource-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+                <line x1="8" y1="21" x2="16" y2="21"/>
+                <line x1="12" y1="17" x2="12" y2="21"/>
+              </svg>
+            </div>
+            <div class="resource-text">
+              <strong>API Reference</strong>
+              <span>Developer documentation</span>
+            </div>
+            <svg class="resource-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="7" y1="17" x2="17" y2="7"/>
+              <polyline points="7 7 17 7 17 17"/>
+            </svg>
+          </a>
+        </div>
+      </section>
+
+      <!-- CTA -->
+      <div class="cta">
+        <a href="https://claude.ai" target="_blank" class="btn-primary">
+          <span>Open Claude.ai</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="7" y1="17" x2="17" y2="7"/>
+            <polyline points="7 7 17 7 17 17"/>
+          </svg>
+        </a>
+        <button id="close-btn" class="btn-secondary">Close this tab</button>
+      </div>
+
+      <!-- Footer -->
+      <footer class="footer">
+        <p>Made with care for the Claude community</p>
+        <p class="author">By <a href="https://jrlarcelet.com/?ref=claudekarma" target="_blank">Jean-Remi Larcelet-Prost</a></p>
+      </footer>
+    </main>
+  </div>
+
+  <script src="tips.js"></script>
+</body>
+</html>

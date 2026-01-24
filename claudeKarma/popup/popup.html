@@ -3,16 +3,37 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=320">
-  <title>ClaudeKarma</title>
+  <title>ClaudeKarma — Claude Usage Tracker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="popup.css">
 </head>
 <body>
-  <div class="container">
+  <div class="app">
+    <!-- Ambient Background -->
+    <div class="ambient-glow"></div>
+
     <!-- Header -->
     <header class="header">
-      <h1 class="title">ClaudeKarma</h1>
-      <button id="refresh-btn" class="refresh-btn" title="Refresh">
-        <svg class="refresh-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <div class="brand">
+        <div class="logo">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5" opacity="0.3"/>
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10" stroke="url(#logoGrad)" stroke-width="2" stroke-linecap="round"/>
+            <defs>
+              <linearGradient id="logoGrad" x1="2" y1="12" x2="12" y2="22">
+                <stop offset="0%" stop-color="#818cf8"/>
+                <stop offset="100%" stop-color="#6366f1"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        <span class="brand-name">ClaudeKarma</span>
+        <span class="brand-tagline">Usage Tracker</span>
+      </div>
+      <button id="refresh-btn" class="icon-btn" title="Refresh">
+        <svg class="icon refresh-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/>
           <path d="M21 3v5h-5"/>
         </svg>
@@ -20,70 +41,213 @@
     </header>
 
     <!-- Loading State -->
-    <div id="loading-state" class="loading-state hidden">
-      <div class="spinner"></div>
-      <span>Loading...</span>
+    <div id="loading-state" class="state-container hidden">
+      <div class="loading-ring">
+        <svg viewBox="0 0 50 50">
+          <circle cx="25" cy="25" r="20" fill="none" stroke="currentColor" stroke-width="3" opacity="0.1"/>
+          <circle cx="25" cy="25" r="20" fill="none" stroke="url(#loadGrad)" stroke-width="3" stroke-linecap="round" stroke-dasharray="80 200"/>
+          <defs>
+            <linearGradient id="loadGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="#6366f1"/>
+              <stop offset="100%" stop-color="#818cf8"/>
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
+      <span class="state-text">Syncing...</span>
+    </div>
+
+    <!-- Setup State -->
+    <div id="setup-state" class="state-container hidden">
+      <div class="setup-icon">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+        </svg>
+      </div>
+      <h2 class="setup-title">Connect Your Account</h2>
+      <p class="setup-subtitle">Link ClaudeKarma to your Claude account to track usage.</p>
+
+      <button id="auto-detect-btn" class="btn-primary">
+        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83"/>
+        </svg>
+        <span>Auto-detect Account</span>
+      </button>
+
+      <div class="divider">
+        <span>or enter manually</span>
+      </div>
+
+      <div class="input-group">
+        <input type="text" id="org-id-input" placeholder="Organization ID" class="input" spellcheck="false">
+        <button id="save-org-btn" class="btn-secondary">Save</button>
+      </div>
+
+      <a href="https://claude.ai/settings" target="_blank" class="help-link">
+        <svg class="help-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+          <line x1="12" y1="17" x2="12.01" y2="17"/>
+        </svg>
+        <span>Find your Organization ID</span>
+      </a>
     </div>
 
     <!-- Error State -->
-    <div id="error-state" class="error-state hidden">
-      <p id="error-message">Error fetching data</p>
-      <a href="https://claude.ai/settings/usage" target="_blank" class="link">Visit Usage Page</a>
+    <div id="error-state" class="state-container hidden">
+      <div class="error-icon">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="8" x2="12" y2="12"/>
+          <line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+      </div>
+      <p id="error-message" class="error-text">Error fetching data</p>
+      <a href="https://claude.ai/settings/usage" target="_blank" class="btn-ghost">Visit Usage Page</a>
     </div>
 
-    <!-- Not Logged In State -->
-    <div id="login-state" class="login-state hidden">
-      <p>Please log in to Claude.ai to see your usage data.</p>
-      <a href="https://claude.ai" target="_blank" class="link">Go to Claude.ai</a>
+    <!-- Login State -->
+    <div id="login-state" class="state-container hidden">
+      <div class="login-icon">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
+          <polyline points="10 17 15 12 10 7"/>
+          <line x1="15" y1="12" x2="3" y2="12"/>
+        </svg>
+      </div>
+      <h2 class="login-title">Sign in to Claude</h2>
+      <p class="login-subtitle">Access your usage data by signing in.</p>
+      <a href="https://claude.ai" target="_blank" class="btn-primary">
+        <span>Open Claude.ai</span>
+        <svg class="btn-icon-right" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="7" y1="17" x2="17" y2="7"/>
+          <polyline points="7 7 17 7 17 17"/>
+        </svg>
+      </a>
     </div>
 
     <!-- Main Content -->
-    <main id="main-content" class="main-content">
-      <!-- Current Session Card -->
-      <section class="card">
-        <h2 class="card-title">Current Session</h2>
-        <div class="progress-container">
-          <div class="progress-bar">
-            <div id="session-progress" class="progress-fill" style="width: 0%"></div>
-          </div>
-          <span id="session-percentage" class="percentage">0%</span>
-        </div>
-        <p id="session-reset" class="reset-text">--</p>
-      </section>
-
-      <!-- Weekly Limits Card -->
-      <section class="card">
-        <h2 class="card-title">Weekly Limits</h2>
-
-        <!-- All Models -->
-        <div class="limit-row">
-          <span class="limit-label">All Models</span>
-          <div class="progress-container">
-            <div class="progress-bar progress-bar-small">
-              <div id="all-models-progress" class="progress-fill" style="width: 0%"></div>
+    <main id="main-content" class="main hidden">
+      <!-- Two-column layout: Gauge + Weekly Stats -->
+      <div class="usage-layout">
+        <!-- Left: Session Gauge -->
+        <div class="gauge-section">
+          <div class="gauge-container">
+            <svg class="gauge" viewBox="0 0 120 120">
+              <!-- Background track -->
+              <circle
+                cx="60" cy="60" r="52"
+                fill="none"
+                stroke="rgba(255,255,255,0.06)"
+                stroke-width="8"
+              />
+              <!-- Progress arc -->
+              <circle
+                id="gauge-progress"
+                cx="60" cy="60" r="52"
+                fill="none"
+                stroke="url(#gaugeGradient)"
+                stroke-width="8"
+                stroke-linecap="round"
+                stroke-dasharray="327"
+                stroke-dashoffset="327"
+                transform="rotate(-90 60 60)"
+              />
+              <!-- Gradient definitions -->
+              <defs>
+                <linearGradient id="gaugeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop id="gauge-stop-1" offset="0%" stop-color="#22c55e"/>
+                  <stop id="gauge-stop-2" offset="100%" stop-color="#4ade80"/>
+                </linearGradient>
+              </defs>
+            </svg>
+            <div class="gauge-content">
+              <span id="session-percentage" class="gauge-value">0</span>
+              <span class="gauge-unit">%</span>
             </div>
-            <span id="all-models-percentage" class="percentage">0%</span>
+          </div>
+          <div class="gauge-label">
+            <span class="gauge-title">5-Hour Limit</span>
+            <span id="session-reset" class="gauge-reset">--</span>
           </div>
         </div>
 
-        <!-- Sonnet Only -->
-        <div class="limit-row">
-          <span class="limit-label">Sonnet Only</span>
-          <div class="progress-container">
-            <div class="progress-bar progress-bar-small">
-              <div id="sonnet-progress" class="progress-fill" style="width: 0%"></div>
+        <!-- Right: Weekly Stats (single card) -->
+        <div class="weekly-card">
+          <!-- Stats at top -->
+          <div class="stats-content">
+            <!-- All Models -->
+            <div class="stat-row">
+              <div class="stat-header">
+                <span class="stat-label">All Models</span>
+                <span id="all-models-percentage" class="stat-value">0%</span>
+              </div>
+              <div class="stat-bar">
+                <div id="all-models-progress" class="stat-fill" style="width: 0%"></div>
+              </div>
             </div>
-            <span id="sonnet-percentage" class="percentage">0%</span>
+
+            <!-- Model-specific (Sonnet/Opus/etc) -->
+            <div class="stat-row">
+              <div class="stat-header">
+                <span id="model-label" class="stat-label">Model</span>
+                <span id="model-percentage" class="stat-value">0%</span>
+              </div>
+              <div class="stat-bar">
+                <div id="model-progress" class="stat-fill" style="width: 0%"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Label and reset (like left block) -->
+          <div class="weekly-label">
+            <span class="weekly-title">7-Day Limit</span>
+            <span id="weekly-reset" class="weekly-reset">--</span>
           </div>
         </div>
+      </div>
 
-        <p id="weekly-reset" class="reset-text">--</p>
-      </section>
+      <!-- Random Tip -->
+      <div id="random-tip" class="random-tip">
+        <div class="tip-header">
+          <svg class="tip-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 18h6"/>
+            <path d="M10 22h4"/>
+            <path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"/>
+          </svg>
+          <span class="tip-label">Quick Tip</span>
+        </div>
+        <p id="tip-text" class="tip-content">--</p>
+        <button id="see-more-tips" class="see-more-link">
+          <span>See more tips</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="5" y1="12" x2="19" y2="12"/>
+            <polyline points="12 5 19 12 12 19"/>
+          </svg>
+        </button>
+      </div>
     </main>
 
     <!-- Footer -->
     <footer class="footer">
-      <span id="last-updated">Last updated: --</span>
+      <span id="last-updated" class="footer-text">Last updated: --</span>
+      <div class="footer-actions">
+        <button id="tips-btn" class="icon-btn icon-btn-sm tips-btn" title="Tips & Tricks">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 18h6"/>
+            <path d="M10 22h4"/>
+            <path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"/>
+          </svg>
+          <span id="tips-new-dot" class="new-dot"></span>
+        </button>
+        <button id="settings-btn" class="icon-btn icon-btn-sm" title="Settings">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+        </svg>
+        </button>
+      </div>
     </footer>
   </div>
 

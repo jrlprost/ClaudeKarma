@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Welcome to ClaudeKarma — Claude Usage Tracker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="welcome.css">
+</head>
+<body>
+  <div class="container">
+    <!-- Background effects -->
+    <div class="bg-gradient"></div>
+    <div class="bg-grid"></div>
+
+    <!-- Main content -->
+    <main class="content">
+      <!-- Logo -->
+      <div class="logo">
+        <svg width="64" height="64" viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5" opacity="0.3"/>
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10" stroke="url(#logoGrad)" stroke-width="2.5" stroke-linecap="round"/>
+          <defs>
+            <linearGradient id="logoGrad" x1="2" y1="12" x2="12" y2="22">
+              <stop offset="0%" stop-color="#818cf8"/>
+              <stop offset="100%" stop-color="#6366f1"/>
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
+
+      <!-- Welcome text -->
+      <h1 class="title">Welcome to ClaudeKarma</h1>
+      <p class="subtitle">Claude Usage Tracker — Monitor your limits at a glance</p>
+
+      <!-- Pin instructions -->
+      <div class="card">
+        <h2 class="card-title">Pin for Quick Access</h2>
+        <p class="card-text">Keep ClaudeKarma visible in your toolbar for instant usage monitoring.</p>
+
+        <div class="steps">
+          <!-- Step 1 -->
+          <div class="step">
+            <div class="step-number">1</div>
+            <div class="step-content">
+              <div class="step-visual">
+                <svg class="puzzle-icon" viewBox="0 0 512 512" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="32">
+                  <path d="M413.66,246.1H386a2,2,0,0,1-2-2V166.86A38.86,38.86,0,0,0,345.14,128H267.9a2,2,0,0,1-2-2V98.34c0-27.14-21.5-49.86-48.64-50.33a49.53,49.53,0,0,0-50.4,49.51V126a2,2,0,0,1-2,2H87.62A39.74,39.74,0,0,0,48,167.62V238a2,2,0,0,0,2,2H76.91c29.37,0,53.68,25.48,54.09,54.85.42,29.87-23.51,57.15-53.29,57.15H50a2,2,0,0,0-2,2v70.38A39.74,39.74,0,0,0,87.62,464H158a2,2,0,0,0,2-2V441.07c0-30.28,24.75-56.35,55-57.06,30.1-.7,57,20.31,57,50.28V462a2,2,0,0,0,2,2h71.14A38.86,38.86,0,0,0,384,425.14v-78a2,2,0,0,1,2-2h28.48c27.63,0,49.52-22.67,49.52-50.4S440.8,246.1,413.66,246.1Z"/>
+                </svg>
+              </div>
+              <div class="step-text">
+                <strong>Click the Extensions icon</strong>
+                <span>Look for the puzzle piece icon in your toolbar</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 2 -->
+          <div class="step">
+            <div class="step-number">2</div>
+            <div class="step-content">
+              <div class="step-visual">
+                <div class="extension-item">
+                  <div class="ext-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                      <circle cx="12" cy="12" r="8" stroke="#6366f1" stroke-width="2"/>
+                      <path d="M12 4a8 8 0 0 1 8 8" stroke="#6366f1" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                  </div>
+                  <span class="ext-name">ClaudeKarma</span>
+                  <svg class="pin-icon unpinned" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="12" y1="17" x2="12" y2="22"/>
+                    <path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z"/>
+                  </svg>
+                </div>
+              </div>
+              <div class="step-text">
+                <strong>Find ClaudeKarma</strong>
+                <span>Locate it in the extensions list</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 3 -->
+          <div class="step">
+            <div class="step-number">3</div>
+            <div class="step-content">
+              <div class="step-visual">
+                <div class="extension-item pinned">
+                  <div class="ext-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                      <circle cx="12" cy="12" r="8" stroke="#6366f1" stroke-width="2"/>
+                      <path d="M12 4a8 8 0 0 1 8 8" stroke="#6366f1" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                  </div>
+                  <span class="ext-name">ClaudeKarma</span>
+                  <svg class="pin-icon pinned" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="12" y1="17" x2="12" y2="22"/>
+                    <path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z"/>
+                  </svg>
+                </div>
+              </div>
+              <div class="step-text">
+                <strong>Click the pin icon</strong>
+                <span>The icon will stay visible in your toolbar</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Features -->
+      <div class="features">
+        <div class="feature">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <polyline points="12 6 12 12 16 14"/>
+            </svg>
+          </div>
+          <div class="feature-text">
+            <strong>Real-time tracking</strong>
+            <span>Monitor 5-hour and 7-day limits</span>
+          </div>
+        </div>
+
+        <div class="feature">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/>
+              <path d="M21 3v5h-5"/>
+            </svg>
+          </div>
+          <div class="feature-text">
+            <strong>Auto-refresh</strong>
+            <span>Updates every 5 minutes</span>
+          </div>
+        </div>
+
+        <div class="feature">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+          </div>
+          <div class="feature-text">
+            <strong>Privacy first</strong>
+            <span>All data stays in your browser</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- CTA -->
+      <div class="cta">
+        <a href="https://claude.ai" target="_blank" class="btn-primary">
+          <span>Open Claude.ai</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="7" y1="17" x2="17" y2="7"/>
+            <polyline points="7 7 17 7 17 17"/>
+          </svg>
+        </a>
+        <button id="close-btn" class="btn-secondary">Got it, close this tab</button>
+      </div>
+
+      <!-- Footer -->
+      <footer class="footer">
+        <p>Made with care for the Claude community</p>
+        <p class="author">By <a href="https://jrlarcelet.com/?ref=claudekarma" target="_blank">Jean-Rémi Larcelet-Prost</a></p>
+      </footer>
+    </main>
+  </div>
+
+  <script src="welcome.js"></script>
+</body>
+</html>

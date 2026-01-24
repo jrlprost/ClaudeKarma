@@ -2,114 +2,224 @@
  * ClaudeKarma - Icon Renderer
  *
  * Generates dynamic toolbar icons using OffscreenCanvas.
- * Creates circular progress rings that update based on usage percentage.
+ * Features dual concentric progress rings:
+ * - Outer ring: 5-hour session limit
+ * - Inner ring: 7-day weekly limit
  */
 
 import { ICON_SIZES, COLORS } from './constants.js';
 
+// Animation state
+let animationInterval = null;
+let currentProgress = { session: 0, weekly: 0 };
+let animationPhase = 0;
+let animationType = null;
+
+// Animation settings
+const ANIMATION_FPS = 30;
+const ANIMATION_INTERVAL = 1000 / ANIMATION_FPS;
+const PULSE_SPEED = 0.08;
+const SPIN_SPEED = 0.15;
+
 /**
  * Get progress ring color based on percentage
- *
- * TODO: This is a user contribution opportunity!
- * Customize the color thresholds to match your preferences.
- *
- * @param {number} percentage - Usage percentage (0-1)
- * @returns {string} Hex color code
  */
 export function getProgressColor(percentage) {
-  // Convert to 0-100 scale for easier reading
   const percent = percentage * 100;
 
-  // Default thresholds from CLAUDE.md spec:
-  // 0-50%: green, 50-75%: yellow, 75-90%: orange, 90-100%: red
   if (percent < 50) {
-    return COLORS.progress.low;      // #22c55e (green)
+    return COLORS.progress.low;
   } else if (percent < 75) {
-    return COLORS.progress.medium;   // #eab308 (yellow)
+    return COLORS.progress.medium;
   } else if (percent < 90) {
-    return COLORS.progress.high;     // #f97316 (orange)
+    return COLORS.progress.high;
   } else {
-    return COLORS.progress.critical; // #ef4444 (red)
+    return COLORS.progress.critical;
   }
 }
 
 /**
- * Draw a circular progress ring on OffscreenCanvas
+ * Parse hex color to RGB components
+ */
+function hexToRgb(hex) {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  if (result) {
+    return {
+      r: parseInt(result[1], 16),
+      g: parseInt(result[2], 16),
+      b: parseInt(result[3], 16)
+    };
+  }
+  return { r: 0, g: 0, b: 0 };
+}
+
+/**
+ * Draw dual concentric progress rings
  *
  * @param {number} size - Canvas size in pixels
- * @param {number} progress - Progress value (0-1)
- * @returns {ImageData} Pixel data for chrome.action.setIcon()
+ * @param {number} sessionProgress - 5-hour limit progress (0-1)
+ * @param {number} weeklyProgress - 7-day limit progress (0-1)
+ * @param {object} options - Animation options
  */
-export function drawProgressRing(size, progress) {
+export function drawDualProgressRing(size, sessionProgress, weeklyProgress, options) {
+  options = options || {};
+  const glowIntensity = options.glowIntensity || 0;
+  const spinOffset = options.spinOffset || 0;
+  const showSpinner = options.showSpinner || false;
+
   const canvas = new OffscreenCanvas(size, size);
   const ctx = canvas.getContext('2d');
 
-  // Canvas dimensions
   const centerX = size / 2;
   const centerY = size / 2;
-  const lineWidth = Math.max(2, Math.floor(size / 8));
-  const radius = (size / 2) - lineWidth;
 
-  // Clear canvas with transparent background
+  // Calculate ring dimensions based on size
+  // Outer ring for session (5-hour)
+  const outerLineWidth = Math.max(2, Math.floor(size / 8));
+  const outerRadius = (size / 2) - outerLineWidth / 2 - 1;
+
+  // Inner ring for weekly (7-day) - smaller and thinner
+  const innerLineWidth = Math.max(1.5, Math.floor(size / 10));
+  const innerRadius = outerRadius - outerLineWidth - Math.max(1, size / 16);
+
   ctx.clearRect(0, 0, size, size);
 
-  // Draw background ring (gray track)
-  ctx.strokeStyle = COLORS.ringBackground;
-  ctx.lineWidth = lineWidth;
-  ctx.lineCap = 'round';
-  ctx.beginPath();
-  ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
-  ctx.stroke();
+  if (showSpinner) {
+    // Spinning loading indicator (uses outer ring position)
+    const spinnerColor = COLORS.accent || '#6366f1';
+    const spinnerLength = Math.PI * 0.6;
 
-  // Draw progress arc (colored)
-  if (progress > 0) {
-    const color = getProgressColor(progress);
-    ctx.strokeStyle = color;
-    ctx.lineWidth = lineWidth;
+    // Outer spinner
+    ctx.strokeStyle = COLORS.ringBackground;
+    ctx.lineWidth = outerLineWidth;
     ctx.lineCap = 'round';
-
-    // Start at top (12 o'clock position)
-    const startAngle = -Math.PI / 2;
-    // Progress determines how far to draw
-    const endAngle = startAngle + (Math.min(progress, 1) * 2 * Math.PI);
-
     ctx.beginPath();
-    ctx.arc(centerX, centerY, radius, startAngle, endAngle);
+    ctx.arc(centerX, centerY, outerRadius, 0, 2 * Math.PI);
     ctx.stroke();
+
+    ctx.strokeStyle = spinnerColor;
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, outerRadius, spinOffset, spinOffset + spinnerLength);
+    ctx.stroke();
+
+    // Inner track (just background)
+    ctx.strokeStyle = COLORS.ringBackground;
+    ctx.lineWidth = innerLineWidth;
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, innerRadius, 0, 2 * Math.PI);
+    ctx.stroke();
+
+  } else {
+    // === OUTER RING (Session / 5-hour) ===
+
+    // Background track
+    ctx.strokeStyle = COLORS.ringBackground;
+    ctx.lineWidth = outerLineWidth;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, outerRadius, 0, 2 * Math.PI);
+    ctx.stroke();
+
+    // Progress arc
+    if (sessionProgress > 0) {
+      const color = getProgressColor(sessionProgress);
+      const rgb = hexToRgb(color);
+
+      // Glow layer
+      if (glowIntensity > 0) {
+        const glowRadius = outerLineWidth * (1 + glowIntensity * 0.4);
+        const glowAlpha = 0.25 * glowIntensity;
+
+        ctx.strokeStyle = 'rgba(' + rgb.r + ', ' + rgb.g + ', ' + rgb.b + ', ' + glowAlpha + ')';
+        ctx.lineWidth = glowRadius;
+        ctx.lineCap = 'round';
+
+        const startAngle = -Math.PI / 2;
+        const endAngle = startAngle + (Math.min(sessionProgress, 1) * 2 * Math.PI);
+
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, outerRadius, startAngle, endAngle);
+        ctx.stroke();
+      }
+
+      // Main arc
+      ctx.strokeStyle = color;
+      ctx.lineWidth = outerLineWidth;
+      ctx.lineCap = 'round';
+
+      const startAngle = -Math.PI / 2;
+      const endAngle = startAngle + (Math.min(sessionProgress, 1) * 2 * Math.PI);
+
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, outerRadius, startAngle, endAngle);
+      ctx.stroke();
+    }
+
+    // === INNER RING (Weekly / 7-day) ===
+
+    // Background track
+    ctx.strokeStyle = COLORS.ringBackground;
+    ctx.lineWidth = innerLineWidth;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, innerRadius, 0, 2 * Math.PI);
+    ctx.stroke();
+
+    // Progress arc
+    if (weeklyProgress > 0) {
+      const color = getProgressColor(weeklyProgress);
+
+      ctx.strokeStyle = color;
+      ctx.lineWidth = innerLineWidth;
+      ctx.lineCap = 'round';
+
+      const startAngle = -Math.PI / 2;
+      const endAngle = startAngle + (Math.min(weeklyProgress, 1) * 2 * Math.PI);
+
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, innerRadius, startAngle, endAngle);
+      ctx.stroke();
+    }
   }
 
-  // Return ImageData for setIcon
   return ctx.getImageData(0, 0, size, size);
 }
 
 /**
- * Generate icon data for all required sizes
- *
- * @param {number} progress - Progress value (0-1)
- * @returns {Object} Dictionary of size -> ImageData
+ * Legacy single ring function (for backwards compatibility)
  */
-export function generateIconData(progress) {
+export function drawProgressRing(size, progress, options) {
+  return drawDualProgressRing(size, progress, 0, options);
+}
+
+/**
+ * Generate icon data for all required sizes
+ */
+export function generateIconData(sessionProgress, weeklyProgress, options) {
   const result = {};
 
   for (const size of ICON_SIZES) {
-    result[size] = drawProgressRing(size, progress);
+    result[size] = drawDualProgressRing(size, sessionProgress, weeklyProgress || 0, options || {});
   }
 
   return result;
 }
 
 /**
- * Update the browser toolbar icon
- *
- * @param {number} progress - Progress value (0-1)
- * @returns {Promise<void>}
+ * Update the browser toolbar icon with dual progress rings
  */
-export async function updateIcon(progress) {
+export async function updateIcon(sessionProgress, weeklyProgress, options) {
+  // Handle legacy single-value calls
+  if (typeof weeklyProgress === 'object') {
+    options = weeklyProgress;
+    weeklyProgress = 0;
+  }
+
   return new Promise((resolve, reject) => {
     try {
-      const imageData = generateIconData(progress);
+      const imageData = generateIconData(sessionProgress, weeklyProgress || 0, options);
 
-      chrome.action.setIcon({ imageData }, () => {
+      chrome.action.setIcon({ imageData: imageData }, function() {
         if (chrome.runtime.lastError) {
           console.error('[ClaudeKarma] Icon update failed:', chrome.runtime.lastError);
           reject(chrome.runtime.lastError);
@@ -125,14 +235,78 @@ export async function updateIcon(progress) {
 }
 
 /**
- * Set badge text on the icon (fallback for browsers without OffscreenCanvas)
- *
- * @param {string} text - Badge text (e.g., "45%")
- * @param {string} color - Badge background color
+ * Animation frame update
  */
-export async function setBadge(text, color = COLORS.accent) {
-  await chrome.action.setBadgeText({ text });
-  await chrome.action.setBadgeBackgroundColor({ color });
+function animationFrame() {
+  animationPhase += (animationType === 'spin' ? SPIN_SPEED : PULSE_SPEED);
+
+  if (animationType === 'pulse') {
+    const glowIntensity = (Math.sin(animationPhase) + 1) / 2;
+    updateIcon(currentProgress.session, currentProgress.weekly, { glowIntensity: glowIntensity }).catch(function() {});
+
+  } else if (animationType === 'spin') {
+    updateIcon(0, 0, { showSpinner: true, spinOffset: animationPhase }).catch(function() {});
+  }
+}
+
+/**
+ * Start icon animation
+ */
+export function startAnimation(type, sessionProgress, weeklyProgress) {
+  stopAnimation();
+
+  animationType = type || 'pulse';
+  currentProgress = {
+    session: sessionProgress || 0,
+    weekly: weeklyProgress || 0
+  };
+  animationPhase = 0;
+
+  animationInterval = setInterval(animationFrame, ANIMATION_INTERVAL);
+  console.log('[ClaudeKarma] Icon animation started:', animationType);
+}
+
+/**
+ * Stop icon animation and show static icon
+ */
+export async function stopAnimation(sessionProgress, weeklyProgress) {
+  if (animationInterval) {
+    clearInterval(animationInterval);
+    animationInterval = null;
+  }
+
+  animationType = null;
+
+  if (sessionProgress !== undefined) {
+    currentProgress.session = sessionProgress;
+    currentProgress.weekly = weeklyProgress || 0;
+    await updateIcon(sessionProgress, weeklyProgress || 0, { glowIntensity: 0 });
+  }
+
+  console.log('[ClaudeKarma] Icon animation stopped');
+}
+
+/**
+ * Check if animation is running
+ */
+export function isAnimating() {
+  return animationInterval !== null;
+}
+
+/**
+ * Update progress while keeping animation running
+ */
+export function setAnimationProgress(sessionProgress, weeklyProgress) {
+  currentProgress.session = sessionProgress;
+  currentProgress.weekly = weeklyProgress || 0;
+}
+
+/**
+ * Set badge text on the icon
+ */
+export async function setBadge(text, color) {
+  await chrome.action.setBadgeText({ text: text });
+  await chrome.action.setBadgeBackgroundColor({ color: color || COLORS.accent });
 }
 
 /**

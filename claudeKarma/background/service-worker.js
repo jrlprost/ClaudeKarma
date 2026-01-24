@@ -10,7 +10,7 @@
 
 import { ALARMS, TIMING, MESSAGE_TYPES, STORAGE_KEYS } from '../lib/constants.js';
 import * as storage from '../lib/storage.js';
-import { updateIcon } from '../lib/icon-renderer.js';
+import { updateIcon, startAnimation, stopAnimation } from '../lib/icon-renderer.js';
 
 // ============================================
 // Extension Lifecycle
@@ -18,6 +18,13 @@ import { updateIcon } from '../lib/icon-renderer.js';
 
 chrome.runtime.onInstalled.addListener(async (details) => {
   console.log('[ClaudeKarma] Extension installed:', details.reason);
+
+  // Open welcome page on first install
+  if (details.reason === 'install') {
+    chrome.tabs.create({
+      url: chrome.runtime.getURL('welcome/welcome.html')
+    });
+  }
 
   const existingData = await storage.getUsageData();
   if (!existingData.lastFetchedAt) {
@@ -72,6 +79,9 @@ async function fetchUsageData() {
     return;
   }
 
+  // Start spinning animation while loading
+  startAnimation('spin');
+
   // Strategy 1: Try the organization API (requires org ID)
   const settings = await storage.getSettings();
   if (settings.organizationId) {
@@ -90,6 +100,18 @@ async function fetchUsageData() {
 
   // Strategy 3: Fall back to content script
   await triggerContentScript();
+
+  // If we still have no org ID after all strategies, mark as needs setup
+  const finalSettings = await storage.getSettings();
+  if (!finalSettings.organizationId) {
+    const usageData = await storage.getUsageData();
+    usageData.error = 'needs_setup';
+    usageData.lastFetchedAt = Date.now();
+    await storage.setUsageData(usageData);
+
+    // Stop animation and show empty state
+    await stopAnimation(0, 0);
+  }
 }
 
 /**
@@ -133,20 +155,50 @@ async function fetchFromOrgAPI(orgId) {
 /**
  * Parse the organization usage API response
  * Format: { five_hour: { utilization, resets_at }, seven_day: {...}, ... }
+ *
+ * The API may return different model-specific limits based on subscription:
+ * - seven_day_opus: Opus usage limit
+ * - seven_day_sonnet: Sonnet usage limit
+ * - etc.
  */
 function parseOrgUsageResponse(data) {
   console.log('[ClaudeKarma] Parsing org usage:', Object.keys(data));
+  console.log('[ClaudeKarma] Full API response:', JSON.stringify(data, null, 2));
 
   // Extract the relevant limits
   const fiveHour = data.five_hour || {};
   const sevenDay = data.seven_day || {};
-  const sevenDayOpus = data.seven_day_opus || {};
+
+  // Detect which model-specific limit is available
+  // Priority: opus > sonnet > haiku > any other seven_day_* field
+  let modelLimit = null;
+  let modelName = null;
+
+  if (data.seven_day_opus) {
+    modelLimit = data.seven_day_opus;
+    modelName = 'Opus';
+  } else if (data.seven_day_sonnet) {
+    modelLimit = data.seven_day_sonnet;
+    modelName = 'Sonnet';
+  } else if (data.seven_day_haiku) {
+    modelLimit = data.seven_day_haiku;
+    modelName = 'Haiku';
+  } else {
+    // Try to find any seven_day_* field
+    const modelKeys = Object.keys(data).filter(k => k.startsWith('seven_day_') && k !== 'seven_day');
+    if (modelKeys.length > 0) {
+      const key = modelKeys[0];
+      modelLimit = data[key];
+      // Extract model name from key (e.g., "seven_day_sonnet" -> "Sonnet")
+      modelName = key.replace('seven_day_', '').charAt(0).toUpperCase() + key.replace('seven_day_', '').slice(1);
+    }
+  }
 
   // Calculate percentages (utilization is a count, we need to estimate percentage)
   // For now, use utilization directly as percentage if < 100, otherwise cap at 100
   const sessionPct = Math.min(fiveHour.utilization || 0, 100);
   const weeklyPct = Math.min(sevenDay.utilization || 0, 100);
-  const sonnetPct = Math.min(sevenDayOpus.utilization || 0, 100);
+  const modelPct = modelLimit ? Math.min(modelLimit.utilization || 0, 100) : 0;
 
   return {
     currentSession: {
@@ -160,11 +212,12 @@ function parseOrgUsageResponse(data) {
         resetDay: null,
         resetTime: null
       },
-      sonnetOnly: {
-        percentage: sonnetPct,
-        resetTimestamp: sevenDayOpus.resets_at ? new Date(sevenDayOpus.resets_at).getTime() : null,
+      modelSpecific: {
+        percentage: modelPct,
+        resetTimestamp: modelLimit?.resets_at ? new Date(modelLimit.resets_at).getTime() : null,
         resetDay: null,
-        resetTime: null
+        resetTime: null,
+        modelName: modelName
       }
     },
     _raw: data // Keep raw data for debugging
@@ -269,7 +322,9 @@ async function handleNotAuthenticated() {
   usageData.error = 'not_authenticated';
   usageData.lastFetchedAt = Date.now();
   await storage.setUsageData(usageData);
-  await refreshIcon();
+
+  // Stop animation and show empty state
+  await stopAnimation(0, 0);
 }
 
 async function saveUsageData(data, source) {
@@ -341,9 +396,23 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 async function refreshIcon() {
   try {
     const usageData = await storage.getUsageData();
-    const percentage = usageData.currentSession?.percentage || 0;
-    await updateIcon(percentage / 100);
-    console.log('[ClaudeKarma] Icon: ' + percentage + '%');
+
+    // Get both session and weekly percentages
+    const sessionPct = usageData.currentSession?.percentage || 0;
+    const weeklyPct = usageData.weeklyLimits?.allModels?.percentage || 0;
+
+    const sessionProgress = sessionPct / 100;
+    const weeklyProgress = weeklyPct / 100;
+
+    // Stop any running animation and update with both values
+    await stopAnimation(sessionProgress, weeklyProgress);
+
+    // Optional: Start pulse animation for high usage (>75%)
+    if (sessionPct >= 75 || weeklyPct >= 75) {
+      startAnimation('pulse', sessionProgress, weeklyProgress);
+    }
+
+    console.log('[ClaudeKarma] Icon: session=' + sessionPct + '%, weekly=' + weeklyPct + '%');
   } catch (error) {
     console.error('[ClaudeKarma] Icon update failed:', error);
   }

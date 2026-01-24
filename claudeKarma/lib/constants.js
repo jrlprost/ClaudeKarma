@@ -35,20 +35,21 @@ export const TIMING = {
   MIN_FETCH_INTERVAL_MS: 30000 // 30 seconds minimum between fetches
 };
 
-// Icon sizes to generate
-export const ICON_SIZES = [16, 32, 48];
+// Icon sizes to generate (Chrome uses 16, 19, 32, 38, 48 for different displays/contexts)
+export const ICON_SIZES = [16, 19, 32, 38, 48];
 
 // UI colors (dark theme)
 export const COLORS = {
   // Theme colors
-  background: '#1a1a1a',
-  card: '#2a2a2a',
-  textPrimary: '#ffffff',
-  textSecondary: '#888888',
+  background: '#0d0d0f',
+  card: '#1f1f23',
+  textPrimary: '#fafafa',
+  textSecondary: '#a1a1aa',
   accent: '#6366f1',
+  accentLight: '#818cf8',
 
   // Progress ring background
-  ringBackground: '#3a3a3a',
+  ringBackground: '#27272a',
 
   // Progress colors by threshold (will be implemented by user)
   // Default values - user can customize in getProgressColor()

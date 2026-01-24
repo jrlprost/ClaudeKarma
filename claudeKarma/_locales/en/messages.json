@@ -1,10 +1,10 @@
 {
   "extensionName": {
-    "message": "ClaudeKarma",
+    "message": "ClaudeKarma — Claude Usage Tracker",
     "description": "Extension name"
   },
   "extensionDescription": {
-    "message": "Monitor your Claude AI usage directly from the toolbar. See session limits, weekly quotas, and reset times at a glance.",
+    "message": "Track your Claude AI usage limits directly from the toolbar. Monitor 5-hour session and 7-day quotas with real-time progress rings. Never hit the limit unexpectedly again.",
     "description": "Extension description"
   },
   "currentSession": {
