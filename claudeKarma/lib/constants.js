@@ -45,8 +45,8 @@ export const COLORS = {
   card: '#1f1f23',
   textPrimary: '#fafafa',
   textSecondary: '#a1a1aa',
-  accent: '#a855f7',      // Neon purple - vibrant and visible on dark backgrounds
-  accentLight: '#c084fc', // Lighter neon purple
+  accent: '#22c55e',      // Green - matches progress ring, vibrant on dark backgrounds
+  accentLight: '#4ade80', // Lighter green
 
   // Progress ring background
   ringBackground: '#27272a',
