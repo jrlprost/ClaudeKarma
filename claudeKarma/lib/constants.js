@@ -32,7 +32,7 @@ export const DEFAULT_SETTINGS = {
 export const TIMING = {
   REFRESH_INTERVAL_MINUTES: 5,
   MUTATION_OBSERVER_TIMEOUT_MS: 15000,
-  MIN_FETCH_INTERVAL_MS: 60000 // 1 minute minimum between fetches
+  MIN_FETCH_INTERVAL_MS: 30000 // 30 seconds minimum between fetches
 };
 
 // Icon sizes to generate
