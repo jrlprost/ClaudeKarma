@@ -407,8 +407,8 @@ async function refreshIcon() {
     // Stop any running animation and update with both values
     await stopAnimation(sessionProgress, weeklyProgress);
 
-    // Optional: Start pulse animation for high usage (>75%)
-    if (sessionPct >= 75 || weeklyPct >= 75) {
+    // Optional: Start pulse animation for high usage (>70%)
+    if (sessionPct >= 70 || weeklyPct >= 70) {
       startAnimation('pulse', sessionProgress, weeklyProgress);
     }
 

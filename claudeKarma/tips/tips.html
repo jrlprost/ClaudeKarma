@@ -81,6 +81,52 @@
             <h3 class="tip-title">Iterate</h3>
             <p class="tip-text">Refine your prompts based on Claude's responses for optimal results.</p>
           </div>
+
+          <div class="tip-card">
+            <div class="tip-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+              </svg>
+            </div>
+            <h3 class="tip-title">Role Play</h3>
+            <p class="tip-text">Ask Claude to act as an expert: "Act as a senior developer..."</p>
+          </div>
+
+          <div class="tip-card">
+            <div class="tip-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+                <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+              </svg>
+            </div>
+            <h3 class="tip-title">Show Examples</h3>
+            <p class="tip-text">Provide sample inputs and outputs to guide Claude's responses.</p>
+          </div>
+
+          <div class="tip-card">
+            <div class="tip-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/>
+                <path d="M21 3v5h-5"/>
+              </svg>
+            </div>
+            <h3 class="tip-title">Ask for Alternatives</h3>
+            <p class="tip-text">Request multiple options, then pick the best one for your needs.</p>
+          </div>
+
+          <div class="tip-card">
+            <div class="tip-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 20h9"/>
+                <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/>
+              </svg>
+            </div>
+            <h3 class="tip-title">Self-Critique</h3>
+            <p class="tip-text">Ask Claude to review and improve its own response.</p>
+          </div>
         </div>
       </section>
 
@@ -108,6 +154,9 @@
                 <li>Ask Claude to explain its reasoning when needed</li>
                 <li>Request specific output formats (bullets, tables, code blocks)</li>
                 <li>Set constraints to get more focused responses</li>
+                <li>Provide examples of desired output when possible</li>
+                <li>Ask for step-by-step reasoning on complex problems</li>
+                <li>Use "Let's think through this..." for better analysis</li>
               </ul>
             </div>
           </div>
@@ -131,7 +180,11 @@
                 <li>Share relevant code snippets for context</li>
                 <li>Ask for explanations of complex code sections</li>
                 <li>Request code reviews with specific focus areas</li>
-                <li>Use Claude for debugging by describing the expected vs actual behavior</li>
+                <li>Use Claude for debugging by describing expected vs actual behavior</li>
+                <li>Ask for tests alongside new code implementations</li>
+                <li>Request refactoring suggestions for cleaner code</li>
+                <li>Share error messages and stack traces for debugging</li>
+                <li>Ask Claude to add comments explaining the logic</li>
               </ul>
             </div>
           </div>
@@ -156,6 +209,96 @@
                 <li>Use Claude Projects for persistent context and files</li>
                 <li>Reference specific parts of earlier responses when following up</li>
                 <li>Keep track of what Claude knows vs what you need to re-explain</li>
+                <li>Ask Claude to summarize key decisions made so far</li>
+                <li>Use clear section breaks when switching topics</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="accordion-item">
+            <button class="accordion-header">
+              <div class="accordion-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
+                  <polyline points="14 2 14 8 20 8"/>
+                </svg>
+              </div>
+              <span class="accordion-title">Writing & Content</span>
+              <svg class="accordion-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 12 15 18 9"/>
+              </svg>
+            </button>
+            <div class="accordion-content">
+              <ul class="practice-list">
+                <li>Specify the tone: formal, casual, technical, friendly</li>
+                <li>Mention your target audience for appropriate language</li>
+                <li>Ask Claude to match a specific writing style</li>
+                <li>Request multiple versions for A/B testing</li>
+                <li>Use Claude to simplify complex explanations</li>
+                <li>Ask for outlines before writing full content</li>
+                <li>Request proofreading and improvement suggestions</li>
+                <li>Specify word count or length constraints</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="accordion-item">
+            <button class="accordion-header">
+              <div class="accordion-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"/>
+                  <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+                  <path d="M12 17h.01"/>
+                </svg>
+              </div>
+              <span class="accordion-title">Learning & Research</span>
+              <svg class="accordion-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 12 15 18 9"/>
+              </svg>
+            </button>
+            <div class="accordion-content">
+              <ul class="practice-list">
+                <li>Ask Claude to explain concepts at different levels</li>
+                <li>Request analogies to understand complex topics</li>
+                <li>Use Claude as a study partner for Q&A practice</li>
+                <li>Ask for recommended resources on any topic</li>
+                <li>Request comparisons between similar concepts</li>
+                <li>Ask "What am I missing?" for blind spot detection</li>
+                <li>Use Claude to create study guides and summaries</li>
+                <li>Ask for real-world examples of abstract concepts</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="accordion-item">
+            <button class="accordion-header">
+              <div class="accordion-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 2v4"/>
+                  <path d="M12 18v4"/>
+                  <path d="m4.93 4.93 2.83 2.83"/>
+                  <path d="m16.24 16.24 2.83 2.83"/>
+                  <path d="M2 12h4"/>
+                  <path d="M18 12h4"/>
+                  <path d="m4.93 19.07 2.83-2.83"/>
+                  <path d="m16.24 7.76 2.83-2.83"/>
+                </svg>
+              </div>
+              <span class="accordion-title">Productivity Hacks</span>
+              <svg class="accordion-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 12 15 18 9"/>
+              </svg>
+            </button>
+            <div class="accordion-content">
+              <ul class="practice-list">
+                <li>Create checklists to ensure nothing is missed</li>
+                <li>Use Claude to prepare meeting agendas and notes</li>
+                <li>Ask for email drafts with different tones</li>
+                <li>Request project timelines and milestones</li>
+                <li>Use Claude to brainstorm before making decisions</li>
+                <li>Ask for pros and cons lists for decision-making</li>
+                <li>Create templates for repetitive tasks</li>
+                <li>Use Claude to summarize long documents quickly</li>
               </ul>
             </div>
           </div>

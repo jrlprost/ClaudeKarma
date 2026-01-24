@@ -18,7 +18,7 @@ let animationType = null;
 // Animation settings
 const ANIMATION_FPS = 30;
 const ANIMATION_INTERVAL = 1000 / ANIMATION_FPS;
-const PULSE_SPEED = 0.08;
+const PULSE_SPEED = 0.05;  // Rotation speed for warning animation
 const SPIN_SPEED = 0.15;
 
 /**
@@ -29,7 +29,7 @@ export function getProgressColor(percentage) {
 
   if (percent < 50) {
     return COLORS.progress.low;
-  } else if (percent < 75) {
+  } else if (percent < 70) {
     return COLORS.progress.medium;
   } else if (percent < 90) {
     return COLORS.progress.high;
@@ -66,6 +66,7 @@ export function drawDualProgressRing(size, sessionProgress, weeklyProgress, opti
   const glowIntensity = options.glowIntensity || 0;
   const spinOffset = options.spinOffset || 0;
   const showSpinner = options.showSpinner || false;
+  const rotationOffset = options.rotationOffset || 0;
 
   const canvas = new OffscreenCanvas(size, size);
   const ctx = canvas.getContext('2d');
@@ -125,16 +126,16 @@ export function drawDualProgressRing(size, sessionProgress, weeklyProgress, opti
       const color = getProgressColor(sessionProgress);
       const rgb = hexToRgb(color);
 
-      // Glow layer
+      // Glow layer (pulsing effect)
       if (glowIntensity > 0) {
-        const glowRadius = outerLineWidth * (1 + glowIntensity * 0.4);
-        const glowAlpha = 0.25 * glowIntensity;
+        const glowRadius = outerLineWidth * (1 + glowIntensity * 0.8);
+        const glowAlpha = 0.5 * glowIntensity;
 
         ctx.strokeStyle = 'rgba(' + rgb.r + ', ' + rgb.g + ', ' + rgb.b + ', ' + glowAlpha + ')';
         ctx.lineWidth = glowRadius;
         ctx.lineCap = 'round';
 
-        const startAngle = -Math.PI / 2;
+        const startAngle = -Math.PI / 2 + rotationOffset;
         const endAngle = startAngle + (Math.min(sessionProgress, 1) * 2 * Math.PI);
 
         ctx.beginPath();
@@ -147,7 +148,7 @@ export function drawDualProgressRing(size, sessionProgress, weeklyProgress, opti
       ctx.lineWidth = outerLineWidth;
       ctx.lineCap = 'round';
 
-      const startAngle = -Math.PI / 2;
+      const startAngle = -Math.PI / 2 + rotationOffset;
       const endAngle = startAngle + (Math.min(sessionProgress, 1) * 2 * Math.PI);
 
       ctx.beginPath();
@@ -173,7 +174,8 @@ export function drawDualProgressRing(size, sessionProgress, weeklyProgress, opti
       ctx.lineWidth = innerLineWidth;
       ctx.lineCap = 'round';
 
-      const startAngle = -Math.PI / 2;
+      // Inner ring rotates opposite direction for cool effect
+      const startAngle = -Math.PI / 2 - rotationOffset;
       const endAngle = startAngle + (Math.min(weeklyProgress, 1) * 2 * Math.PI);
 
       ctx.beginPath();
@@ -241,8 +243,8 @@ function animationFrame() {
   animationPhase += (animationType === 'spin' ? SPIN_SPEED : PULSE_SPEED);
 
   if (animationType === 'pulse') {
-    const glowIntensity = (Math.sin(animationPhase) + 1) / 2;
-    updateIcon(currentProgress.session, currentProgress.weekly, { glowIntensity: glowIntensity }).catch(function() {});
+    // Rotating animation for high usage warning
+    updateIcon(currentProgress.session, currentProgress.weekly, { rotationOffset: animationPhase }).catch(function() {});
 
   } else if (animationType === 'spin') {
     updateIcon(0, 0, { showSpinner: true, spinOffset: animationPhase }).catch(function() {});

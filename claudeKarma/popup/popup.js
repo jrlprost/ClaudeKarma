@@ -14,6 +14,7 @@ const MESSAGE_TYPES = {
 
 // Quick tips for random display
 const QUICK_TIPS = [
+  // Prompting basics
   "Be specific and clear in your prompts for better results.",
   "Break complex tasks into smaller, manageable steps.",
   "Provide context and examples to help Claude understand.",
@@ -22,8 +23,50 @@ const QUICK_TIPS = [
   "Iterate and refine your prompts based on responses.",
   "Use Claude for brainstorming before drafting.",
   "Set constraints for more focused outputs.",
+
+  // Context management
   "Start new chats for unrelated topics to avoid confusion.",
-  "Use Claude Projects for persistent context across sessions."
+  "Use Claude Projects for persistent context across sessions.",
+  "Summarize long conversations to maintain focus.",
+  "Reference earlier parts of the conversation explicitly.",
+
+  // Advanced techniques
+  "Ask Claude to think step-by-step for complex reasoning.",
+  "Use role-playing: 'Act as a senior developer reviewing code'.",
+  "Provide examples of desired output format.",
+  "Ask for multiple alternatives, then pick the best one.",
+  "Request pros and cons for decision-making help.",
+
+  // Code assistance
+  "Share error messages and stack traces for debugging help.",
+  "Specify programming language and framework versions.",
+  "Ask Claude to add comments explaining complex code.",
+  "Request tests alongside new code implementations.",
+  "Use Claude to refactor code for better readability.",
+
+  // Writing assistance
+  "Specify tone: formal, casual, technical, friendly.",
+  "Ask Claude to match a specific writing style or author.",
+  "Request different versions for A/B testing copy.",
+  "Use Claude to simplify complex explanations.",
+
+  // Productivity
+  "Use Claude to create outlines before writing.",
+  "Ask for checklists to ensure nothing is missed.",
+  "Request summaries of long documents or articles.",
+  "Use Claude to prepare meeting agendas and notes.",
+
+  // Quality improvement
+  "Ask Claude to critique its own response.",
+  "Request a more concise version of long responses.",
+  "Ask 'What am I missing?' for blind spot detection.",
+  "Use Claude to proofread and improve your writing.",
+
+  // Learning
+  "Ask Claude to explain concepts at different levels.",
+  "Request analogies to understand complex topics.",
+  "Use Claude as a study partner for Q&A practice.",
+  "Ask for recommended resources on any topic."
 ];
 
 // Gauge configuration
@@ -130,7 +173,7 @@ function showMainContent() {
  */
 function getStatusLevel(percentage) {
   if (percentage < 50) return 'low';
-  if (percentage < 75) return 'medium';
+  if (percentage < 70) return 'medium';
   if (percentage < 90) return 'high';
   return 'critical';
 }
