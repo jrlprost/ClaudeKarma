@@ -90,11 +90,10 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
 // ============================================
 
 /**
- * Fetch usage data from Claude.ai API
- * Tries multiple endpoints and parses the response
+ * Fetch usage data - tries content script first (most reliable for SPAs)
  */
 async function fetchUsageData() {
-  console.log('[ClaudeKarma] Fetching usage data from API...');
+  console.log('[ClaudeKarma] Fetching usage data...');
 
   // Check if we fetched recently (avoid hammering)
   const lastFetch = await storage.getLastFetchTime();
@@ -103,43 +102,109 @@ async function fetchUsageData() {
     return;
   }
 
-  // Try to fetch the usage page HTML and parse it
+  // Strategy 1: Try to inject content script into any open Claude tab
+  // This is most reliable because it runs after React renders the page
+  const injected = await injectContentScript();
+  if (injected) {
+    console.log('[ClaudeKarma] Content script injected, waiting for data...');
+    return; // Data will come via message from content script
+  }
+
+  // Strategy 2: Try API endpoints that might return JSON
+  const apiEndpoints = [
+    'https://claude.ai/api/account',
+    'https://claude.ai/api/usage',
+    'https://claude.ai/api/settings'
+  ];
+
+  for (const endpoint of apiEndpoints) {
+    try {
+      console.log('[ClaudeKarma] Trying API:', endpoint);
+      const response = await fetch(endpoint, {
+        credentials: 'include',
+        headers: { 'Accept': 'application/json' }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log('[ClaudeKarma] API response:', Object.keys(data));
+
+        if (data.usage || data.limits || data.account) {
+          const usageData = normalizeAPIResponse(data);
+          await saveUsageData(usageData, 'api');
+          return;
+        }
+      }
+    } catch (e) {
+      console.log('[ClaudeKarma] API ' + endpoint + ' failed:', e.message);
+    }
+  }
+
+  console.log('[ClaudeKarma] No data source available - open Claude.ai to fetch data');
+}
+
+/**
+ * Normalize API response to our data format
+ */
+function normalizeAPIResponse(data) {
+  const usage = data.usage || data.limits || data;
+  return {
+    currentSession: {
+      percentage: usage.session_usage || usage.current || 0,
+      resetTimestamp: usage.session_reset || null
+    },
+    weeklyLimits: {
+      allModels: {
+        percentage: usage.weekly_all || usage.all_models || 0,
+        resetTimestamp: null, resetDay: null, resetTime: null
+      },
+      sonnetOnly: {
+        percentage: usage.weekly_sonnet || usage.sonnet || 0,
+        resetTimestamp: null, resetDay: null, resetTime: null
+      }
+    }
+  };
+}
+
+/**
+ * Inject content script into an open Claude tab
+ */
+async function injectContentScript() {
   try {
-    const response = await fetch('https://claude.ai/settings/usage', {
-      credentials: 'include',
-      headers: {
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-        'Cache-Control': 'no-cache'
-      }
+    // Find any Claude tab (not just usage page)
+    const tabs = await chrome.tabs.query({ url: 'https://claude.ai/*' });
+
+    if (tabs.length === 0) {
+      console.log('[ClaudeKarma] No Claude tabs open');
+      return false;
+    }
+
+    // Prefer usage page, but any Claude tab works
+    const usageTab = tabs.find(function(t) {
+      return t.url && t.url.includes('/settings/usage');
     });
+    const targetTab = usageTab || tabs[0];
 
-    if (!response.ok) {
-      if (response.status === 401 || response.status === 403) {
-        console.log('[ClaudeKarma] User not authenticated');
-        await handleNotAuthenticated();
-        return;
+    console.log('[ClaudeKarma] Found Claude tab:', targetTab.url);
+
+    // If it's the usage page, just request a refresh from existing content script
+    if (targetTab.url.includes('/settings/usage')) {
+      try {
+        await chrome.tabs.sendMessage(targetTab.id, { type: MESSAGE_TYPES.REQUEST_REFRESH });
+        return true;
+      } catch (e) {
+        console.log('[ClaudeKarma] Content script not loaded, injecting...');
       }
-      throw new Error('HTTP ' + response.status);
     }
 
-    const html = await response.text();
-    console.log('[ClaudeKarma] Got usage page HTML, length:', html.length);
-
-    // Try to extract __NEXT_DATA__ from the HTML
-    const usageData = parseUsageFromHTML(html);
-
-    if (usageData) {
-      await saveUsageData(usageData, 'api');
-      console.log('[ClaudeKarma] Usage data saved from API');
-    } else {
-      console.log('[ClaudeKarma] Could not parse usage data from HTML');
-    }
+    // Navigate to usage page to trigger content script
+    await chrome.tabs.update(targetTab.id, { url: 'https://claude.ai/settings/usage' });
+    console.log('[ClaudeKarma] Navigated tab to usage page');
+    return true;
 
   } catch (error) {
-    console.error('[ClaudeKarma] API fetch failed:', error);
-
-    // Try fallback to content script if there's an open Claude tab
-    await fallbackToContentScript();
+    console.error('[ClaudeKarma] Failed to inject:', error);
+    return false;
   }
 }
 
