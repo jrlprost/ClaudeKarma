@@ -147,7 +147,11 @@ async function fetchFromOrgAPI(orgId) {
     return true;
 
   } catch (error) {
-    console.error('[ClaudeKarma] API fetch failed:', error);
+    if (error instanceof TypeError && error.message === 'Failed to fetch') {
+      console.warn('[ClaudeKarma] Cannot reach claude.ai — are you logged in?');
+    } else {
+      console.warn('[ClaudeKarma] API fetch failed:', error.message);
+    }
     return false;
   }
 }
@@ -273,7 +277,11 @@ async function fetchOrganizationId() {
     }
 
   } catch (error) {
-    console.error('[ClaudeKarma] Failed to get org ID:', error);
+    if (error instanceof TypeError && error.message === 'Failed to fetch') {
+      console.warn('[ClaudeKarma] Cannot reach claude.ai — are you logged in?');
+    } else {
+      console.warn('[ClaudeKarma] Could not auto-detect org ID:', error.message);
+    }
   }
 
   return null;
