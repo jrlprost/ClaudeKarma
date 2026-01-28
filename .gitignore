@@ -24,5 +24,8 @@ dist/
 # Archives
 *.zip
 
+# Private plans
+MARKETING.md
+
 # Claude settings (don't sync to GitHub)
 .claude/
