@@ -98,7 +98,7 @@ src/
 - Minimal permissions requested
 - Open source — full code transparency
 
-Full privacy policy: [jrlarcelet.com/extensions/claudekarma/privacy](https://jrlarcelet.com/extensions/claudekarma/privacy/)
+Full privacy policy: [PRIVACY.md](https://github.com/jrlprost/ClaudeKarma/blob/main/PRIVACY.md)
 
 ## Permissions
 
