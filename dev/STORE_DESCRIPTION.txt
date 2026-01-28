@@ -1,0 +1,46 @@
+Never hit your Claude limits unexpectedly again.
+
+ClaudeKarma displays your Claude AI usage directly in your browser toolbar. Monitor your 5-hour session limit and 7-day weekly limits with a beautiful, dynamic progress ring.
+
+FEATURES
+
+- Dual Progress Rings — See both session (5-hour) and weekly (7-day) limits at a glance
+- Color-Coded Status — Green, yellow, orange, and red indicators show usage levels
+- Real-Time Updates — Automatically refreshes every 5 minutes
+- Visual Warnings — Animated icon when approaching limits (70%+)
+- Tips & Tricks — Built-in prompting tips to help you use Claude more effectively
+- Premium Dark Theme — Beautiful, native-feeling interface
+- Privacy First — All data stays on your device. No tracking, no analytics.
+
+HOW IT WORKS
+
+1. Install the extension
+2. Log into claude.ai
+3. Click the ClaudeKarma icon to see your usage
+
+The extension automatically detects your Claude account and displays your current usage. Pin it to your toolbar for instant visibility.
+
+TOOLBAR ICON
+
+The toolbar icon shows two concentric rings:
+- Outer ring = 7-day weekly limit (all models)
+- Inner ring = 5-hour session limit
+Colors change from green to yellow to orange to red as you approach your limits. At 70%+, the icon animates to grab your attention.
+
+REQUIREMENTS
+
+- An active Claude AI account (claude.ai)
+- Must be logged into Claude in your browser
+
+PRIVACY
+
+ClaudeKarma stores all data locally on your device. We don't collect, transmit, or have access to any of your information. The only network communication is between your browser and claude.ai to fetch your usage data. No third-party services, no analytics, no tracking.
+
+See our full privacy policy: https://jrlarcelet.com/extensions/claudekarma/privacy/
+
+OPEN SOURCE
+
+ClaudeKarma is open source! View the code, report issues, or contribute:
+https://github.com/jrlprost/claudekarma_browser
+
+Note: ClaudeKarma is an independent project and is not affiliated with Anthropic.
