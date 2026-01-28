@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>ClaudeKarma - Store Screenshots</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: #111;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 60px;
+      padding: 60px 20px;
+      font-family: 'Inter', -apple-system, sans-serif;
+    }
+
+    .label {
+      color: #888;
+      font-size: 14px;
+      margin-bottom: 8px;
+      text-align: center;
+    }
+
+    /* Each screenshot frame is exactly 1280x800 */
+    .screenshot {
+      width: 1284px;
+      height: 804px;
+      position: relative;
+      overflow: hidden;
+      flex-shrink: 0;
+      border: 1px solid #333;
+    }
+
+    /* Screenshot 1: Main popup - Hero */
+    .shot-1 {
+      background: radial-gradient(ellipse at 60% 50%, #0a1a0f 0%, #0d0d0f 60%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 80px;
+    }
+
+    .shot-1 .text-side {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      max-width: 420px;
+    }
+
+    .shot-1 .logo-mark {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+
+    .shot-1 .logo-mark img {
+      width: 48px;
+      height: 48px;
+    }
+
+    .shot-1 .logo-mark span {
+      font-size: 20px;
+      font-weight: 600;
+      color: #fafafa;
+    }
+
+    .shot-1 h1 {
+      font-size: 44px;
+      font-weight: 700;
+      color: #ffffff;
+      line-height: 1.15;
+      letter-spacing: -0.02em;
+    }
+
+    .shot-1 h1 .green {
+      color: #22c55e;
+    }
+
+    .shot-1 .subtitle {
+      font-size: 18px;
+      color: #a1a1aa;
+      line-height: 1.6;
+    }
+
+    .shot-1 .features {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    .shot-1 .feature {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 15px;
+      color: #d4d4d8;
+    }
+
+    .shot-1 .feature-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #22c55e;
+      flex-shrink: 0;
+    }
+
+    .shot-1 .popup-frame {
+      position: relative;
+    }
+
+    .shot-1 .popup-frame img {
+      width: 520px;
+      border-radius: 12px;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5), 0 0 40px rgba(34, 197, 94, 0.1);
+    }
+
+    /* Screenshot 2: Feature highlights */
+    .shot-2 {
+      background: radial-gradient(ellipse at 40% 50%, #0a1a0f 0%, #0d0d0f 60%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 80px;
+    }
+
+    .shot-2 .popup-frame img {
+      width: 500px;
+      border-radius: 12px;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5), 0 0 40px rgba(34, 197, 94, 0.1);
+    }
+
+    .shot-2 .text-side {
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+      max-width: 440px;
+    }
+
+    .shot-2 h2 {
+      font-size: 36px;
+      font-weight: 700;
+      color: #ffffff;
+      line-height: 1.2;
+      letter-spacing: -0.02em;
+    }
+
+    .shot-2 .highlight-card {
+      background: rgba(34, 197, 94, 0.06);
+      border: 1px solid rgba(34, 197, 94, 0.15);
+      border-radius: 12px;
+      padding: 20px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .shot-2 .highlight-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #22c55e;
+    }
+
+    .shot-2 .highlight-desc {
+      font-size: 14px;
+      color: #a1a1aa;
+      line-height: 1.5;
+    }
+
+    /* Screenshot 3: Tips page */
+    .shot-3 {
+      background: radial-gradient(ellipse at 50% 40%, #0a1a0f 0%, #0d0d0f 60%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 32px;
+    }
+
+    .shot-3 h2 {
+      font-size: 36px;
+      font-weight: 700;
+      color: #ffffff;
+      text-align: center;
+      letter-spacing: -0.02em;
+    }
+
+    .shot-3 .sub {
+      font-size: 18px;
+      color: #a1a1aa;
+      text-align: center;
+      margin-top: -16px;
+    }
+
+    .shot-3 .tips-frame img {
+      width: 900px;
+      border-radius: 12px;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5), 0 0 40px rgba(34, 197, 94, 0.1);
+    }
+
+    /* Screenshot 3 (setup): Easy setup */
+    .shot-3-setup {
+      background: radial-gradient(ellipse at 60% 50%, #0a1a0f 0%, #0d0d0f 60%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 80px;
+    }
+
+    .shot-3-setup .text-side {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      max-width: 420px;
+    }
+
+    .shot-3-setup h2 {
+      font-size: 38px;
+      font-weight: 700;
+      color: #ffffff;
+      line-height: 1.2;
+      letter-spacing: -0.02em;
+    }
+
+    .shot-3-setup .green {
+      color: #22c55e;
+    }
+
+    .shot-3-setup .sub {
+      font-size: 17px;
+      color: #a1a1aa;
+      line-height: 1.6;
+    }
+
+    .shot-3-setup .features {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    .shot-3-setup .feature {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 15px;
+      color: #d4d4d8;
+    }
+
+    .shot-3-setup .feature-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #22c55e;
+      flex-shrink: 0;
+    }
+
+    .shot-3-setup .popup-frame img {
+      width: 500px;
+      border-radius: 12px;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5), 0 0 40px rgba(34, 197, 94, 0.1);
+    }
+
+    /* Screenshot 4: Privacy / lightweight */
+    .shot-4 {
+      background: #0d0d0f;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 60px;
+    }
+
+    .shot-4 .icon-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      max-width: 500px;
+    }
+
+    .shot-4 .icon-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 12px;
+      padding: 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .shot-4 .icon-card .icon-emoji {
+      font-size: 28px;
+    }
+
+    .shot-4 .icon-card h3 {
+      font-size: 16px;
+      font-weight: 600;
+      color: #fafafa;
+    }
+
+    .shot-4 .icon-card p {
+      font-size: 13px;
+      color: #a1a1aa;
+      line-height: 1.5;
+    }
+
+    .shot-4 .text-side {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      max-width: 400px;
+    }
+
+    .shot-4 h2 {
+      font-size: 36px;
+      font-weight: 700;
+      color: #ffffff;
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+    }
+
+    .shot-4 .subtitle {
+      font-size: 16px;
+      color: #a1a1aa;
+      line-height: 1.6;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- SCREENSHOT 1: Hero shot -->
+  <p class="label">Screenshot 1 — 1280x800 — Hero</p>
+  <div class="screenshot shot-1">
+    <div class="text-side">
+      <div class="logo-mark">
+        <img src="logo.png" alt="CK">
+        <span>ClaudeKarma</span>
+      </div>
+      <h1>Track your <span class="green">Claude AI</span> usage at a glance</h1>
+      <p class="subtitle">Monitor your session and weekly limits directly from your browser toolbar. Never hit your limits unexpectedly again.</p>
+      <div class="features">
+        <div class="feature"><span class="feature-dot"></span>5-hour session tracking</div>
+        <div class="feature"><span class="feature-dot"></span>7-day weekly limit monitoring</div>
+        <div class="feature"><span class="feature-dot"></span>Color-coded usage warnings</div>
+        <div class="feature"><span class="feature-dot"></span>Auto-refresh every 5 minutes</div>
+      </div>
+    </div>
+    <div class="popup-frame">
+      <!-- Replace src with your popup screenshot -->
+      <img src="file:///Users/readspeaker/Desktop/Screenshot%202026-01-28%20at%2007.27.05.png" alt="ClaudeKarma popup">
+    </div>
+  </div>
+
+  <!-- SCREENSHOT 2: Features detail -->
+  <p class="label">Screenshot 2 — 1280x800 — Features</p>
+  <div class="screenshot shot-2">
+    <div class="popup-frame">
+      <!-- Same or different popup screenshot -->
+      <img src="file:///Users/readspeaker/Desktop/Screenshot%202026-01-28%20at%2007.27.05.png" alt="ClaudeKarma popup">
+    </div>
+    <div class="text-side">
+      <h2>Everything you need, nothing you don't</h2>
+      <div class="highlight-card">
+        <span class="highlight-title">Real-Time Progress Ring</span>
+        <span class="highlight-desc">See your 5-hour session usage at a glance with a beautiful circular gauge that changes color as you approach your limit.</span>
+      </div>
+      <div class="highlight-card">
+        <span class="highlight-title">Weekly Limits Dashboard</span>
+        <span class="highlight-desc">Monitor All Models and Sonnet usage with progress bars and countdown timers showing exactly when your limits reset.</span>
+      </div>
+      <div class="highlight-card">
+        <span class="highlight-title">Smart Prompting Tips</span>
+        <span class="highlight-desc">Built-in tips and tricks to help you get the most out of every Claude conversation.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCREENSHOT 3: Easy setup -->
+  <p class="label">Screenshot 3 — 1280x800 — Easy Setup</p>
+  <div class="screenshot shot-3-setup">
+    <div class="text-side">
+      <h2>One-click setup.<br><span class="green">Automatic</span> account detection.</h2>
+      <p class="sub">No API keys. No configuration. Just click and go. ClaudeKarma automatically finds your Claude account.</p>
+      <div class="features">
+        <div class="feature"><span class="feature-dot"></span>Auto-detects your organization</div>
+        <div class="feature"><span class="feature-dot"></span>Uses your existing Claude session</div>
+        <div class="feature"><span class="feature-dot"></span>Manual entry as fallback</div>
+      </div>
+    </div>
+    <div class="popup-frame">
+      <img src="file:///Users/readspeaker/Desktop/Screenshot%202026-01-28%20at%2007.27.24.png" alt="ClaudeKarma setup">
+    </div>
+  </div>
+
+  <!-- SCREENSHOT 4: Privacy & lightweight -->
+  <p class="label">Screenshot 4 — 1280x800 — Privacy & Features</p>
+  <div class="screenshot shot-4">
+    <div class="text-side">
+      <h2>Private by design. Lightweight by nature.</h2>
+      <p class="subtitle">No tracking, no analytics, no external servers. Your data stays on your device — always.</p>
+    </div>
+    <div class="icon-grid">
+      <div class="icon-card">
+        <span class="icon-emoji">🔒</span>
+        <h3>100% Local</h3>
+        <p>All data stored on your device. Nothing leaves your browser.</p>
+      </div>
+      <div class="icon-card">
+        <span class="icon-emoji">⚡</span>
+        <h3>Lightweight</h3>
+        <p>Minimal permissions. Zero impact on browsing performance.</p>
+      </div>
+      <div class="icon-card">
+        <span class="icon-emoji">🔄</span>
+        <h3>Auto Refresh</h3>
+        <p>Updates every 5 minutes. Always up to date, no manual action needed.</p>
+      </div>
+      <div class="icon-card">
+        <span class="icon-emoji">🎨</span>
+        <h3>Premium UI</h3>
+        <p>Dark theme interface designed to match Claude's aesthetic.</p>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

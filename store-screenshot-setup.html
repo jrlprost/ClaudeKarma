@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>ClaudeKarma - Setup Screenshot</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: #111;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      font-family: 'Inter', -apple-system, sans-serif;
+    }
+
+    .screenshot {
+      width: 1284px;
+      height: 804px;
+      background: radial-gradient(ellipse at 60% 50%, #0a1a0f 0%, #0d0d0f 60%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 80px;
+      border: 1px solid #333;
+      flex-shrink: 0;
+    }
+
+    .text-side {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      max-width: 420px;
+    }
+
+    h2 {
+      font-size: 38px;
+      font-weight: 700;
+      color: #ffffff;
+      line-height: 1.2;
+      letter-spacing: -0.02em;
+    }
+
+    .green {
+      color: #22c55e;
+    }
+
+    .subtitle {
+      font-size: 17px;
+      color: #a1a1aa;
+      line-height: 1.6;
+    }
+
+    .features {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    .feature {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 15px;
+      color: #d4d4d8;
+    }
+
+    .feature-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #22c55e;
+      flex-shrink: 0;
+    }
+
+    .popup-frame img {
+      width: 500px;
+      border-radius: 12px;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5), 0 0 40px rgba(34, 197, 94, 0.1);
+    }
+  </style>
+</head>
+<body>
+  <div class="screenshot">
+    <div class="text-side">
+      <h2>One-click setup.<br><span class="green">Automatic</span> account detection.</h2>
+      <p class="subtitle">No API keys. No configuration. Just click and go. ClaudeKarma automatically finds your Claude account.</p>
+      <div class="features">
+        <div class="feature"><span class="feature-dot"></span>Auto-detects your organization</div>
+        <div class="feature"><span class="feature-dot"></span>Uses your existing Claude session</div>
+        <div class="feature"><span class="feature-dot"></span>Manual entry as fallback</div>
+      </div>
+    </div>
+    <div class="popup-frame">
+      <img src="file:///Users/readspeaker/Desktop/Screenshot%202026-01-28%20at%2007.28.00.png" alt="ClaudeKarma setup">
+    </div>
+  </div>
+</body>
+</html>
