@@ -1,0 +1,71 @@
+{
+  "extensionName": {
+    "message": "ClaudeKarma — Claude使用量トラッカー"
+  },
+  "extensionDescription": {
+    "message": "Claude AIの使用量制限を一目で確認。セッションと週間制限をツールバーで表示。"
+  },
+  "currentSession": {
+    "message": "現在のセッション"
+  },
+  "weeklyLimits": {
+    "message": "週間制限"
+  },
+  "allModels": {
+    "message": "全モデル"
+  },
+  "sonnetOnly": {
+    "message": "Sonnetのみ"
+  },
+  "resetsIn": {
+    "message": "$TIME$後にリセット",
+    "placeholders": { "time": { "content": "$1" } }
+  },
+  "resetsOn": {
+    "message": "$DAY$ $TIME$にリセット",
+    "placeholders": { "day": { "content": "$1" }, "time": { "content": "$2" } }
+  },
+  "lastUpdated": {
+    "message": "最終更新: $TIME$",
+    "placeholders": { "time": { "content": "$1" } }
+  },
+  "justNow": {
+    "message": "たった今"
+  },
+  "minuteAgo": {
+    "message": "1分前"
+  },
+  "minutesAgo": {
+    "message": "$COUNT$分前",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "hourAgo": {
+    "message": "1時間前"
+  },
+  "hoursAgo": {
+    "message": "$COUNT$時間前",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "refreshButton": {
+    "message": "更新"
+  },
+  "loading": {
+    "message": "読み込み中..."
+  },
+  "noData": {
+    "message": "データがありません"
+  },
+  "pleaseLogin": {
+    "message": "Claude.aiにログインして使用量データを表示してください。"
+  },
+  "visitUsagePage": {
+    "message": "使用量ページを開く"
+  },
+  "errorFetching": {
+    "message": "データの取得に失敗しました。もう一度お試しください。"
+  },
+  "notificationHighUsage": {
+    "message": "Claude使用量が$PERCENT$%です",
+    "placeholders": { "percent": { "content": "$1" } }
+  }
+}

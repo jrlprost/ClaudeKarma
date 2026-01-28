@@ -4,7 +4,7 @@
     "description": "Extension name"
   },
   "extensionDescription": {
-    "message": "Track your Claude AI usage limits directly from the toolbar. Monitor 5-hour session and 7-day quotas with real-time progress rings. Never hit the limit unexpectedly again.",
+    "message": "Track your Claude AI usage limits at a glance. See session and weekly limits with a beautiful toolbar icon.",
     "description": "Extension description"
   },
   "currentSession": {

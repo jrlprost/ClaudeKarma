@@ -1,0 +1,71 @@
+{
+  "extensionName": {
+    "message": "ClaudeKarma — Suivi d'utilisation Claude"
+  },
+  "extensionDescription": {
+    "message": "Suivez vos limites d'utilisation Claude AI en un coup d'œil. Visualisez vos limites de session et hebdomadaires."
+  },
+  "currentSession": {
+    "message": "Session en cours"
+  },
+  "weeklyLimits": {
+    "message": "Limites hebdomadaires"
+  },
+  "allModels": {
+    "message": "Tous les modèles"
+  },
+  "sonnetOnly": {
+    "message": "Sonnet uniquement"
+  },
+  "resetsIn": {
+    "message": "Réinitialisation dans $TIME$",
+    "placeholders": { "time": { "content": "$1" } }
+  },
+  "resetsOn": {
+    "message": "Réinitialisation $DAY$ à $TIME$",
+    "placeholders": { "day": { "content": "$1" }, "time": { "content": "$2" } }
+  },
+  "lastUpdated": {
+    "message": "Dernière mise à jour : $TIME$",
+    "placeholders": { "time": { "content": "$1" } }
+  },
+  "justNow": {
+    "message": "à l'instant"
+  },
+  "minuteAgo": {
+    "message": "il y a 1 minute"
+  },
+  "minutesAgo": {
+    "message": "il y a $COUNT$ minutes",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "hourAgo": {
+    "message": "il y a 1 heure"
+  },
+  "hoursAgo": {
+    "message": "il y a $COUNT$ heures",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "refreshButton": {
+    "message": "Actualiser"
+  },
+  "loading": {
+    "message": "Chargement..."
+  },
+  "noData": {
+    "message": "Aucune donnée disponible"
+  },
+  "pleaseLogin": {
+    "message": "Veuillez vous connecter à Claude.ai pour voir vos données d'utilisation."
+  },
+  "visitUsagePage": {
+    "message": "Voir la page d'utilisation"
+  },
+  "errorFetching": {
+    "message": "Erreur lors de la récupération des données. Veuillez réessayer."
+  },
+  "notificationHighUsage": {
+    "message": "Utilisation Claude à $PERCENT$%",
+    "placeholders": { "percent": { "content": "$1" } }
+  }
+}

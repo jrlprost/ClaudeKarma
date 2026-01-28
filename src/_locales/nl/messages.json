@@ -1,0 +1,71 @@
+{
+  "extensionName": {
+    "message": "ClaudeKarma — Claude Gebruikstracker"
+  },
+  "extensionDescription": {
+    "message": "Volg je Claude AI-gebruikslimieten in één oogopslag. Bekijk sessie- en weeklimieten in de werkbalk."
+  },
+  "currentSession": {
+    "message": "Huidige sessie"
+  },
+  "weeklyLimits": {
+    "message": "Wekelijkse limieten"
+  },
+  "allModels": {
+    "message": "Alle modellen"
+  },
+  "sonnetOnly": {
+    "message": "Alleen Sonnet"
+  },
+  "resetsIn": {
+    "message": "Reset over $TIME$",
+    "placeholders": { "time": { "content": "$1" } }
+  },
+  "resetsOn": {
+    "message": "Reset $DAY$ om $TIME$",
+    "placeholders": { "day": { "content": "$1" }, "time": { "content": "$2" } }
+  },
+  "lastUpdated": {
+    "message": "Laatst bijgewerkt: $TIME$",
+    "placeholders": { "time": { "content": "$1" } }
+  },
+  "justNow": {
+    "message": "zojuist"
+  },
+  "minuteAgo": {
+    "message": "1 minuut geleden"
+  },
+  "minutesAgo": {
+    "message": "$COUNT$ minuten geleden",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "hourAgo": {
+    "message": "1 uur geleden"
+  },
+  "hoursAgo": {
+    "message": "$COUNT$ uur geleden",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "refreshButton": {
+    "message": "Vernieuwen"
+  },
+  "loading": {
+    "message": "Laden..."
+  },
+  "noData": {
+    "message": "Geen gegevens beschikbaar"
+  },
+  "pleaseLogin": {
+    "message": "Log in op Claude.ai om je gebruiksgegevens te bekijken."
+  },
+  "visitUsagePage": {
+    "message": "Gebruikspagina bezoeken"
+  },
+  "errorFetching": {
+    "message": "Fout bij het ophalen van gegevens. Probeer het opnieuw."
+  },
+  "notificationHighUsage": {
+    "message": "Claude-gebruik op $PERCENT$%",
+    "placeholders": { "percent": { "content": "$1" } }
+  }
+}

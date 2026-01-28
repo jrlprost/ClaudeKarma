@@ -1,0 +1,71 @@
+{
+  "extensionName": {
+    "message": "ClaudeKarma — Claude 사용량 트래커"
+  },
+  "extensionDescription": {
+    "message": "Claude AI 사용량 한도를 한눈에 확인하세요. 세션 및 주간 한도를 툴바에서 확인합니다."
+  },
+  "currentSession": {
+    "message": "현재 세션"
+  },
+  "weeklyLimits": {
+    "message": "주간 한도"
+  },
+  "allModels": {
+    "message": "모든 모델"
+  },
+  "sonnetOnly": {
+    "message": "Sonnet만"
+  },
+  "resetsIn": {
+    "message": "$TIME$ 후 초기화",
+    "placeholders": { "time": { "content": "$1" } }
+  },
+  "resetsOn": {
+    "message": "$DAY$ $TIME$에 초기화",
+    "placeholders": { "day": { "content": "$1" }, "time": { "content": "$2" } }
+  },
+  "lastUpdated": {
+    "message": "마지막 업데이트: $TIME$",
+    "placeholders": { "time": { "content": "$1" } }
+  },
+  "justNow": {
+    "message": "방금"
+  },
+  "minuteAgo": {
+    "message": "1분 전"
+  },
+  "minutesAgo": {
+    "message": "$COUNT$분 전",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "hourAgo": {
+    "message": "1시간 전"
+  },
+  "hoursAgo": {
+    "message": "$COUNT$시간 전",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "refreshButton": {
+    "message": "새로고침"
+  },
+  "loading": {
+    "message": "로딩 중..."
+  },
+  "noData": {
+    "message": "데이터 없음"
+  },
+  "pleaseLogin": {
+    "message": "사용량 데이터를 보려면 Claude.ai에 로그인하세요."
+  },
+  "visitUsagePage": {
+    "message": "사용량 페이지 방문"
+  },
+  "errorFetching": {
+    "message": "데이터를 가져오는 중 오류가 발생했습니다. 다시 시도해 주세요."
+  },
+  "notificationHighUsage": {
+    "message": "Claude 사용량 $PERCENT$%",
+    "placeholders": { "percent": { "content": "$1" } }
+  }
+}

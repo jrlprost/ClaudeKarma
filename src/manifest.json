@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "ClaudeKarma — Claude Usage Tracker",
   "version": "1.0.0",
-  "description": "Track your Claude AI usage limits directly from the toolbar. Monitor 5-hour session and 7-day quotas with real-time progress rings. Never hit the limit unexpectedly again.",
+  "description": "Track your Claude AI usage limits at a glance. See session and weekly limits with a beautiful toolbar icon.",
   
   "author": "Jean-Rémi Larcelet-Prost",
   
