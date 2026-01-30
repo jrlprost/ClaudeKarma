@@ -30,8 +30,7 @@
   
   "permissions": [
     "storage",
-    "alarms",
-    "offscreen"
+    "alarms"
   ],
   
   "host_permissions": [
