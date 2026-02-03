@@ -27,5 +27,8 @@ dist/
 # Private plans
 MARKETING.md
 
+# Development folder (private)
+dev/
+
 # Claude settings (don't sync to GitHub)
 .claude/
