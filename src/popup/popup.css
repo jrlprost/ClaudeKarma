@@ -960,19 +960,20 @@ body {
 .heatmap-legend {
   display: flex;
   align-items: center;
-  gap: 3px;
+  gap: 2px;
   justify-content: flex-end;
-  margin-top: var(--space-xs);
+  margin-top: var(--space-md);
 }
 
 .heatmap-legend-label {
-  font-size: 8px;
+  font-size: 7px;
   color: var(--text-muted);
+  padding: 0 2px;
 }
 
 .heatmap-legend .heatmap-cell {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
   cursor: default;
 }
 
