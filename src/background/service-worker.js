@@ -26,6 +26,13 @@ chrome.runtime.onInstalled.addListener(async (details) => {
     });
   }
 
+  // Open "What's New" page on extension update
+  if (details.reason === 'update') {
+    chrome.tabs.create({
+      url: chrome.runtime.getURL('update/update.html')
+    });
+  }
+
   const existingData = await storage.getUsageData();
   if (!existingData.lastFetchedAt) {
     await storage.setUsageData(existingData);
@@ -48,12 +55,14 @@ chrome.runtime.onStartup.addListener(async () => {
 // ============================================
 
 async function setupAlarm() {
+  const settings = await storage.getSettings();
+  const interval = settings.refreshInterval || TIMING.REFRESH_INTERVAL_MINUTES;
   await chrome.alarms.clear(ALARMS.FETCH_USAGE);
   chrome.alarms.create(ALARMS.FETCH_USAGE, {
     delayInMinutes: 0.1,
-    periodInMinutes: TIMING.REFRESH_INTERVAL_MINUTES
+    periodInMinutes: interval
   });
-  console.log('[ClaudeKarma] Alarm set: refresh every ' + TIMING.REFRESH_INTERVAL_MINUTES + ' minutes');
+  console.log('[ClaudeKarma] Alarm set: refresh every ' + interval + ' minutes');
 }
 
 chrome.alarms.onAlarm.addListener(async (alarm) => {
@@ -167,42 +176,30 @@ async function fetchFromOrgAPI(orgId) {
  */
 function parseOrgUsageResponse(data) {
   console.log('[ClaudeKarma] Parsing org usage:', Object.keys(data));
-  console.log('[ClaudeKarma] Full API response:', JSON.stringify(data, null, 2));
 
-  // Extract the relevant limits
   const fiveHour = data.five_hour || {};
   const sevenDay = data.seven_day || {};
 
-  // Detect which model-specific limit is available
-  // Priority: opus > sonnet > haiku > any other seven_day_* field
-  let modelLimit = null;
-  let modelName = null;
+  // Extract ALL model-specific limits dynamically
+  const modelKeys = Object.keys(data).filter(k => k.startsWith('seven_day_') && k !== 'seven_day');
+  const models = modelKeys.map(key => {
+    const raw = data[key];
+    const name = key.replace('seven_day_', '').charAt(0).toUpperCase() + key.replace('seven_day_', '').slice(1);
+    return {
+      name: name,
+      percentage: Math.min(raw.utilization || 0, 100),
+      resetTimestamp: raw.resets_at ? new Date(raw.resets_at).getTime() : null
+    };
+  });
 
-  if (data.seven_day_opus) {
-    modelLimit = data.seven_day_opus;
-    modelName = 'Opus';
-  } else if (data.seven_day_sonnet) {
-    modelLimit = data.seven_day_sonnet;
-    modelName = 'Sonnet';
-  } else if (data.seven_day_haiku) {
-    modelLimit = data.seven_day_haiku;
-    modelName = 'Haiku';
-  } else {
-    // Try to find any seven_day_* field
-    const modelKeys = Object.keys(data).filter(k => k.startsWith('seven_day_') && k !== 'seven_day');
-    if (modelKeys.length > 0) {
-      const key = modelKeys[0];
-      modelLimit = data[key];
-      // Extract model name from key (e.g., "seven_day_sonnet" -> "Sonnet")
-      modelName = key.replace('seven_day_', '').charAt(0).toUpperCase() + key.replace('seven_day_', '').slice(1);
-    }
-  }
+  // Keep backward-compatible modelSpecific (highest-priority model)
+  const priorityOrder = ['Opus', 'Sonnet', 'Haiku'];
+  const primaryModel = priorityOrder.reduce((found, name) =>
+    found || models.find(m => m.name === name), null
+  ) || models[0] || null;
 
-  // Calculate percentages (utilization is a count, we need to estimate percentage)
-  // For now, use utilization directly as percentage if < 100, otherwise cap at 100
   const sessionPct = Math.min(fiveHour.utilization || 0, 100);
   const weeklyPct = Math.min(sevenDay.utilization || 0, 100);
-  const modelPct = modelLimit ? Math.min(modelLimit.utilization || 0, 100) : 0;
 
   return {
     currentSession: {
@@ -216,15 +213,16 @@ function parseOrgUsageResponse(data) {
         resetDay: null,
         resetTime: null
       },
-      modelSpecific: {
-        percentage: modelPct,
-        resetTimestamp: modelLimit?.resets_at ? new Date(modelLimit.resets_at).getTime() : null,
+      modelSpecific: primaryModel ? {
+        percentage: primaryModel.percentage,
+        resetTimestamp: primaryModel.resetTimestamp,
         resetDay: null,
         resetTime: null,
-        modelName: modelName
-      }
+        modelName: primaryModel.name
+      } : { percentage: 0, resetTimestamp: null, resetDay: null, resetTime: null, modelName: null },
+      models: models
     },
-    _raw: data // Keep raw data for debugging
+    _raw: data
   };
 }
 
@@ -322,6 +320,35 @@ async function triggerContentScript() {
 }
 
 // ============================================
+// Plan Tier Detection
+// ============================================
+
+/**
+ * Fetch the user's plan tier from the rate_limits API
+ * Returns tier string like "default_claude_max_20x" or null
+ */
+async function fetchPlanTier() {
+  try {
+    const settings = await storage.getSettings();
+    if (!settings.organizationId) return null;
+
+    const url = 'https://claude.ai/api/organizations/' + settings.organizationId + '/rate_limits';
+    const response = await fetch(url, {
+      credentials: 'include',
+      headers: { 'Accept': 'application/json' }
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      return data.rate_limit_tier || null;
+    }
+  } catch (error) {
+    console.warn('[ClaudeKarma] Plan tier fetch failed:', error.message);
+  }
+  return null;
+}
+
+// ============================================
 // Data Handling
 // ============================================
 
@@ -345,7 +372,11 @@ async function saveUsageData(data, source) {
     error: null
   };
 
+  // Fetch plan tier for snapshot context
+  const planTier = await fetchPlanTier();
+
   await storage.setUsageData(mergedData);
+  await storage.appendUsageSnapshot(mergedData, planTier);
   await refreshIcon();
 
   try {
@@ -355,7 +386,67 @@ async function saveUsageData(data, source) {
     });
   } catch (e) { /* Popup not open */ }
 
+  await checkAndNotify(mergedData);
+
   console.log('[ClaudeKarma] Data saved from ' + source);
+}
+
+// ============================================
+// Notifications
+// ============================================
+
+const NOTIFICATION_THRESHOLDS = [75, 90, 100];
+
+async function checkAndNotify(usageData) {
+  const settings = await storage.getSettings();
+  if (!settings.notifications?.enabled) return;
+
+  const state = await storage.getNotificationState();
+  const sessionPct = usageData.currentSession?.percentage || 0;
+  const weeklyPct = usageData.weeklyLimits?.allModels?.percentage || 0;
+  const maxPct = Math.max(sessionPct, weeklyPct);
+
+  // Find the highest threshold crossed
+  const crossedThreshold = NOTIFICATION_THRESHOLDS.filter(t => maxPct >= t).pop() || 0;
+
+  // Only notify if we crossed a NEW threshold (higher than last notified)
+  if (crossedThreshold <= 0 || crossedThreshold <= state.lastNotifiedThreshold) {
+    // Reset if usage dropped below all thresholds
+    if (maxPct < NOTIFICATION_THRESHOLDS[0] && state.lastNotifiedThreshold > 0) {
+      await storage.setNotificationState({ lastNotifiedThreshold: 0 });
+    }
+    return;
+  }
+
+  // Determine which limit is higher
+  const isSession = sessionPct >= weeklyPct;
+  const pct = isSession ? sessionPct : weeklyPct;
+  const body = isSession
+    ? chrome.i18n.getMessage('notificationSessionHigh', [String(Math.round(pct))]) ||
+      `Your 5-hour session usage has reached ${Math.round(pct)}%`
+    : chrome.i18n.getMessage('notificationWeeklyHigh', [String(Math.round(pct))]) ||
+      `Your 7-day weekly usage has reached ${Math.round(pct)}%`;
+
+  const title = chrome.i18n.getMessage('notificationTitle') || 'ClaudeKarma — Usage Alert';
+
+  try {
+    chrome.notifications.create('usage-alert-' + crossedThreshold, {
+      type: 'basic',
+      iconUrl: chrome.runtime.getURL('icons/icon-128.png'),
+      title: title,
+      message: body,
+      priority: crossedThreshold >= 90 ? 2 : 1
+    });
+
+    await storage.setNotificationState({
+      lastNotifiedThreshold: crossedThreshold,
+      lastNotifiedAt: Date.now()
+    });
+
+    console.log('[ClaudeKarma] Notification sent: ' + crossedThreshold + '% threshold');
+  } catch (error) {
+    console.warn('[ClaudeKarma] Notification failed:', error.message);
+  }
 }
 
 // ============================================
@@ -391,6 +482,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         .catch(err => sendResponse({ success: false, error: err.message }));
       return true;
 
+    case 'UPDATE_SETTINGS':
+      setupAlarm()
+        .then(() => sendResponse({ success: true }))
+        .catch(err => sendResponse({ success: false, error: err.message }));
+      return true;
+
     default:
       sendResponse({ success: false, error: 'Unknown message' });
       return false;
@@ -415,9 +512,9 @@ async function refreshIcon() {
     // Stop any running animation and update with both values
     await stopAnimation(sessionProgress, weeklyProgress);
 
-    // Optional: Start pulse animation for high usage (>70%)
-    if (sessionPct >= 70 || weeklyPct >= 70) {
-      startAnimation('pulse', sessionProgress, weeklyProgress);
+    // Start blink animation for critical usage (>=90%)
+    if (sessionPct >= 90 || weeklyPct >= 90) {
+      startAnimation('blink', sessionProgress, weeklyProgress);
     }
 
     console.log('[ClaudeKarma] Icon: session=' + sessionPct + '%, weekly=' + weeklyPct + '%');

@@ -9,7 +9,9 @@ export const STORAGE_KEYS = {
   USAGE_DATA: 'usageData',
   SETTINGS: 'settings',
   LAST_FETCH: 'lastFetchedAt',
-  FETCH_SOURCE: 'fetchSource'
+  FETCH_SOURCE: 'fetchSource',
+  USAGE_HISTORY: 'usageHistory',
+  NOTIFICATION_STATE: 'notificationState'
 };
 
 // Alarm names
@@ -32,7 +34,8 @@ export const DEFAULT_SETTINGS = {
 export const TIMING = {
   REFRESH_INTERVAL_MINUTES: 5,
   MUTATION_OBSERVER_TIMEOUT_MS: 15000,
-  MIN_FETCH_INTERVAL_MS: 30000 // 30 seconds minimum between fetches
+  MIN_FETCH_INTERVAL_MS: 30000, // 30 seconds minimum between fetches
+  HISTORY_RETENTION_DAYS: 14
 };
 
 // Icon sizes to generate (Chrome uses 16, 19, 32, 38, 48 for different displays/contexts)
@@ -82,11 +85,12 @@ export const DEFAULT_USAGE_DATA = {
       resetDay: null,
       resetTime: null
     },
-    sonnetOnly: {
+    modelSpecific: {
       percentage: 0,
       resetTimestamp: null,
       resetDay: null,
-      resetTime: null
+      resetTime: null,
+      modelName: null
     }
   },
   lastFetchedAt: null,

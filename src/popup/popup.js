@@ -97,6 +97,19 @@ const elements = {
   saveOrgBtn: document.getElementById('save-org-btn'),
   settingsBtn: document.getElementById('settings-btn'),
 
+  // Settings panel
+  settingsPanel: document.getElementById('settings-panel'),
+  settingsBack: document.getElementById('settings-back'),
+  settingNotifications: document.getElementById('setting-notifications'),
+  thresholdOptions: document.getElementById('threshold-options'),
+  threshold75: document.getElementById('threshold-75'),
+  threshold90: document.getElementById('threshold-90'),
+  threshold100: document.getElementById('threshold-100'),
+  settingRefreshInterval: document.getElementById('setting-refresh-interval'),
+  clearHistoryBtn: document.getElementById('clear-history-btn'),
+  resetSetupBtn: document.getElementById('reset-setup-btn'),
+  settingsVersion: document.getElementById('settings-version'),
+
   // Tips
   tipsBtn: document.getElementById('tips-btn'),
   tipsNewDot: document.getElementById('tips-new-dot'),
@@ -111,8 +124,7 @@ const elements = {
   sessionReset: document.getElementById('session-reset'),
 
   // Weekly Stats
-  allModelsProgress: document.getElementById('all-models-progress'),
-  allModelsPercentage: document.getElementById('all-models-percentage'),
+  modelTabs: document.getElementById('model-tabs'),
   modelLabel: document.getElementById('model-label'),
   modelProgress: document.getElementById('model-progress'),
   modelPercentage: document.getElementById('model-percentage'),
@@ -162,6 +174,7 @@ function showMainContent() {
   hideAllStates();
   elements.mainContent.classList.remove('hidden');
   displayRandomTip();
+  renderHeatmap();
 }
 
 // ============================================
@@ -227,6 +240,96 @@ function updateStatBar(progressEl, percentageEl, percentage) {
   if (percentageEl) {
     percentageEl.textContent = `${Math.round(pct)}%`;
   }
+}
+
+// Current selected model for tab state
+let currentModelTab = 'all';
+
+/**
+ * Build model tabs and display selected model data
+ */
+function buildModelTabs(models, allModelsData, fullData) {
+  if (!elements.modelTabs) return;
+
+  // Clear existing tabs safely
+  while (elements.modelTabs.firstChild) {
+    elements.modelTabs.removeChild(elements.modelTabs.firstChild);
+  }
+
+  const allTab = document.createElement('button');
+  allTab.className = 'model-tab' + (currentModelTab === 'all' ? ' active' : '');
+  allTab.dataset.model = 'all';
+  allTab.textContent = 'All';
+  allTab.addEventListener('click', () => selectModelTab('all', models, allModelsData, fullData));
+  elements.modelTabs.appendChild(allTab);
+
+  models.forEach(model => {
+    const tab = document.createElement('button');
+    tab.className = 'model-tab' + (currentModelTab === model.name ? ' active' : '');
+    tab.dataset.model = model.name;
+    tab.textContent = model.name;
+    tab.addEventListener('click', () => selectModelTab(model.name, models, allModelsData, fullData));
+    elements.modelTabs.appendChild(tab);
+  });
+
+  // If no models detected, fall back to legacy modelSpecific
+  if (models.length === 0) {
+    const legacy = fullData.weeklyLimits?.modelSpecific || fullData.weeklyLimits?.sonnetOnly;
+    if (legacy?.modelName) {
+      const tab = document.createElement('button');
+      tab.className = 'model-tab';
+      tab.dataset.model = legacy.modelName;
+      tab.textContent = legacy.modelName;
+      tab.addEventListener('click', () => {
+        currentModelTab = legacy.modelName;
+        updateModelDisplay(legacy.modelName, legacy.percentage, legacy.resetTimestamp);
+        updateTabActiveState();
+      });
+      elements.modelTabs.appendChild(tab);
+    }
+  }
+
+  // Display current selection
+  selectModelTab(currentModelTab, models, allModelsData, fullData);
+}
+
+function selectModelTab(modelName, models, allModelsData, fullData) {
+  currentModelTab = modelName;
+
+  if (modelName === 'all') {
+    let pct = allModelsData?.percentage ?? 0;
+    let resetTs = allModelsData?.resetTimestamp;
+    // If allModels is 0 but individual models have data, use the max
+    if (pct === 0 && models.length > 0) {
+      const maxModel = models.reduce((a, b) => a.percentage > b.percentage ? a : b);
+      pct = maxModel.percentage;
+      resetTs = resetTs || maxModel.resetTimestamp;
+    }
+    updateModelDisplay('All Models', pct, resetTs);
+  } else {
+    const model = models.find(m => m.name === modelName);
+    if (model) {
+      updateModelDisplay(model.name, model.percentage, model.resetTimestamp);
+    }
+  }
+
+  updateTabActiveState();
+}
+
+function updateModelDisplay(label, percentage, resetTimestamp) {
+  if (elements.modelLabel) elements.modelLabel.textContent = label;
+  updateStatBar(elements.modelProgress, elements.modelPercentage, percentage);
+  if (elements.weeklyReset && resetTimestamp) {
+    elements.weeklyReset.textContent = formatCountdown(resetTimestamp)
+      ? `Resets in ${formatCountdown(resetTimestamp)}` : '--';
+  }
+}
+
+function updateTabActiveState() {
+  if (!elements.modelTabs) return;
+  elements.modelTabs.querySelectorAll('.model-tab').forEach(tab => {
+    tab.classList.toggle('active', tab.dataset.model === currentModelTab);
+  });
 }
 
 // ============================================
@@ -327,19 +430,24 @@ function renderUsageData(data) {
     elements.sessionReset.textContent = formatResetInfo(data.currentSession);
   }
 
-  // Weekly - All Models
-  const allModelsPct = data.weeklyLimits?.allModels?.percentage ?? 0;
-  updateStatBar(elements.allModelsProgress, elements.allModelsPercentage, allModelsPct);
+  // Weekly - Build model tabs and show selected model
+  // Handle both new format (models array) and legacy (modelSpecific/sonnetOnly)
+  let models = data.weeklyLimits?.models || [];
+  const allModelsData = data.weeklyLimits?.allModels || {};
 
-  // Weekly - Model-specific (Sonnet/Opus/etc)
-  const modelData = data.weeklyLimits?.modelSpecific || data.weeklyLimits?.sonnetOnly;
-  const modelPct = modelData?.percentage ?? 0;
-  const modelName = modelData?.modelName || 'Model';
-
-  if (elements.modelLabel) {
-    elements.modelLabel.textContent = modelName;
+  // If no models array, build from legacy modelSpecific/sonnetOnly
+  if (models.length === 0) {
+    const legacy = data.weeklyLimits?.modelSpecific || data.weeklyLimits?.sonnetOnly;
+    if (legacy?.modelName && legacy.percentage > 0) {
+      models = [{
+        name: legacy.modelName,
+        percentage: legacy.percentage,
+        resetTimestamp: legacy.resetTimestamp
+      }];
+    }
   }
-  updateStatBar(elements.modelProgress, elements.modelPercentage, modelPct);
+
+  buildModelTabs(models, allModelsData, data);
 
   // Weekly Reset
   if (elements.weeklyReset) {
@@ -453,8 +561,92 @@ async function handleSaveOrgId() {
   }
 }
 
-function handleSettings() {
-  showSetup();
+// ============================================
+// Settings Panel
+// ============================================
+
+async function openSettings() {
+  // Load current settings
+  try {
+    const result = await chrome.storage.local.get('settings');
+    const settings = result.settings || {};
+
+    if (elements.settingNotifications) {
+      elements.settingNotifications.checked = settings.notifications?.enabled !== false;
+    }
+
+    const thresholds = settings.notifications?.thresholds || [75, 90, 100];
+    if (elements.threshold75) elements.threshold75.checked = thresholds.includes(75);
+    if (elements.threshold90) elements.threshold90.checked = thresholds.includes(90);
+    if (elements.threshold100) elements.threshold100.checked = thresholds.includes(100);
+
+    if (elements.thresholdOptions) {
+      elements.thresholdOptions.style.opacity = elements.settingNotifications?.checked ? '1' : '0.4';
+      elements.thresholdOptions.style.pointerEvents = elements.settingNotifications?.checked ? 'auto' : 'none';
+    }
+
+    if (elements.settingRefreshInterval) {
+      elements.settingRefreshInterval.value = String(settings.refreshInterval || 5);
+    }
+
+    if (elements.settingsVersion) {
+      const manifest = chrome.runtime.getManifest();
+      elements.settingsVersion.textContent = `ClaudeKarma v${manifest.version}`;
+    }
+  } catch (e) {
+    console.error('[ClaudeKarma Popup] Error loading settings:', e);
+  }
+
+  elements.settingsPanel?.classList.add('open');
+}
+
+function closeSettings() {
+  elements.settingsPanel?.classList.remove('open');
+}
+
+async function saveSettings() {
+  try {
+    const thresholds = [];
+    if (elements.threshold75?.checked) thresholds.push(75);
+    if (elements.threshold90?.checked) thresholds.push(90);
+    if (elements.threshold100?.checked) thresholds.push(100);
+
+    const settings = {
+      notifications: {
+        enabled: elements.settingNotifications?.checked ?? true,
+        thresholds: thresholds
+      },
+      refreshInterval: parseInt(elements.settingRefreshInterval?.value || '5', 10)
+    };
+
+    const current = await chrome.storage.local.get('settings');
+    await chrome.storage.local.set({
+      settings: { ...current.settings, ...settings }
+    });
+
+    // Notify service worker to update alarm interval
+    chrome.runtime.sendMessage({ type: 'UPDATE_SETTINGS', settings });
+  } catch (e) {
+    console.error('[ClaudeKarma Popup] Error saving settings:', e);
+  }
+}
+
+async function handleClearHistory() {
+  if (confirm('Clear all usage history? This cannot be undone.')) {
+    await chrome.storage.local.set({ usageHistory: [] });
+    elements.clearHistoryBtn.textContent = 'Cleared!';
+    setTimeout(() => {
+      elements.clearHistoryBtn.textContent = 'Clear Usage History';
+    }, 2000);
+  }
+}
+
+async function handleResetSetup() {
+  if (confirm('Reset account setup? You will need to reconnect.')) {
+    await chrome.storage.local.remove(['settings']);
+    closeSettings();
+    showSetup();
+  }
 }
 
 // ============================================
@@ -492,15 +684,163 @@ function displayRandomTip() {
 }
 
 // ============================================
+// Heatmap
+// ============================================
+
+const heatmapGrid = document.getElementById('heatmap-grid');
+const heatmapHours = document.getElementById('heatmap-hours');
+const heatmapDays = document.getElementById('heatmap-days');
+const heatmapTooltip = document.getElementById('heatmap-tooltip');
+const heatmapWeekBtn = document.getElementById('heatmap-week');
+const heatmapMonthBtn = document.getElementById('heatmap-month');
+
+let heatmapPeriod = 'week';
+
+const HEATMAP_COLORS = ['var(--heatmap-0)', 'var(--heatmap-1)', 'var(--heatmap-2)', 'var(--heatmap-3)', 'var(--heatmap-4)'];
+const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']; // indexed by getDay()
+const SHORT_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+function getHeatmapLevel(percentage) {
+  if (percentage <= 0) return 0;
+  if (percentage < 25) return 1;
+  if (percentage < 50) return 2;
+  if (percentage < 75) return 3;
+  return 4;
+}
+
+async function renderHeatmap() {
+  if (!heatmapGrid) return;
+
+  const days = heatmapPeriod === 'week' ? 7 : 30;
+  const now = new Date();
+  const startDate = new Date(now);
+  startDate.setDate(startDate.getDate() - days + 1);
+  startDate.setHours(0, 0, 0, 0);
+
+  // Fetch history
+  let history = [];
+  try {
+    const result = await chrome.storage.local.get('usageHistory');
+    history = (result.usageHistory || []).filter(e => e.t >= startDate.getTime());
+  } catch (e) {
+    console.error('[ClaudeKarma] Error loading history:', e);
+  }
+
+  // Aggregate into 1-hour blocks per day (24 blocks)
+  // grid[dayIndex][hour] = peak session percentage
+  const BLOCKS = 24;
+  const HOURS_PER_BLOCK = 1;
+  const grid = Array.from({ length: days }, () => Array(BLOCKS).fill(0));
+
+  history.forEach(entry => {
+    const date = new Date(entry.t);
+    const dayIndex = Math.floor((date.getTime() - startDate.getTime()) / (24 * 60 * 60 * 1000));
+    if (dayIndex >= 0 && dayIndex < days) {
+      const block = Math.floor(date.getHours() / HOURS_PER_BLOCK);
+      grid[dayIndex][block] = Math.max(grid[dayIndex][block], entry.s || 0);
+    }
+  });
+
+  // Clear
+  while (heatmapGrid.firstChild) heatmapGrid.removeChild(heatmapGrid.firstChild);
+  while (heatmapHours.firstChild) heatmapHours.removeChild(heatmapHours.firstChild);
+  while (heatmapDays.firstChild) heatmapDays.removeChild(heatmapDays.firstChild);
+
+  // Render hour labels (X-axis, top) — show every 3rd to avoid crowding with 24 columns
+  for (let b = 0; b < BLOCKS; b++) {
+    const label = document.createElement('div');
+    label.className = 'heatmap-hour-label';
+    label.textContent = b % 3 === 0 ? `${String(b).padStart(2, '0')}` : '';
+    heatmapHours.appendChild(label);
+  }
+
+  // Render grid rows (one per day) and day labels (Y-axis, left)
+  for (let d = 0; d < days; d++) {
+    const date = new Date(startDate);
+    date.setDate(date.getDate() + d);
+
+    // Day label
+    const dayLabel = document.createElement('div');
+    dayLabel.className = 'heatmap-day-label';
+    const labelInterval = heatmapPeriod === 'week' ? 1 : 3;
+    if (d % labelInterval === 0) {
+      dayLabel.textContent = heatmapPeriod === 'week'
+        ? DAY_NAMES[date.getDay()]
+        : `${SHORT_MONTHS[date.getMonth()]} ${date.getDate()}`;
+    }
+    heatmapDays.appendChild(dayLabel);
+
+    // Row of cells
+    const row = document.createElement('div');
+    row.className = 'heatmap-row';
+
+    for (let b = 0; b < BLOCKS; b++) {
+      const cell = document.createElement('div');
+      cell.className = 'heatmap-cell';
+      const level = getHeatmapLevel(grid[d][b]);
+      cell.style.background = HEATMAP_COLORS[level];
+
+      const pct = grid[d][b];
+      const dateStr = `${DAY_NAMES[date.getDay()]} ${SHORT_MONTHS[date.getMonth()]} ${date.getDate()}`;
+      const timeStr = `${String(b).padStart(2, '0')}:00`;
+
+      cell.addEventListener('mouseenter', (e) => {
+        heatmapTooltip.textContent = `${dateStr} ${timeStr} — ${pct}%`;
+        heatmapTooltip.classList.add('visible');
+        heatmapTooltip.style.left = `${e.clientX + 8}px`;
+        heatmapTooltip.style.top = `${e.clientY - 28}px`;
+      });
+      cell.addEventListener('mouseleave', () => {
+        heatmapTooltip.classList.remove('visible');
+      });
+
+      row.appendChild(cell);
+    }
+
+    heatmapGrid.appendChild(row);
+  }
+}
+
+heatmapWeekBtn?.addEventListener('click', () => {
+  heatmapPeriod = 'week';
+  heatmapWeekBtn.classList.add('active');
+  heatmapMonthBtn?.classList.remove('active');
+  renderHeatmap();
+});
+
+heatmapMonthBtn?.addEventListener('click', () => {
+  heatmapPeriod = 'month';
+  heatmapMonthBtn.classList.add('active');
+  heatmapWeekBtn?.classList.remove('active');
+  renderHeatmap();
+});
+
+// ============================================
 // Event Listeners
 // ============================================
 
 elements.refreshBtn?.addEventListener('click', triggerRefresh);
 elements.autoDetectBtn?.addEventListener('click', handleAutoDetect);
 elements.saveOrgBtn?.addEventListener('click', handleSaveOrgId);
-elements.settingsBtn?.addEventListener('click', handleSettings);
+elements.settingsBtn?.addEventListener('click', openSettings);
+elements.settingsBack?.addEventListener('click', closeSettings);
 elements.tipsBtn?.addEventListener('click', handleTipsClick);
 elements.seeMoreTips?.addEventListener('click', handleTipsClick);
+elements.clearHistoryBtn?.addEventListener('click', handleClearHistory);
+elements.resetSetupBtn?.addEventListener('click', handleResetSetup);
+
+// Settings auto-save on change
+elements.settingNotifications?.addEventListener('change', () => {
+  if (elements.thresholdOptions) {
+    elements.thresholdOptions.style.opacity = elements.settingNotifications.checked ? '1' : '0.4';
+    elements.thresholdOptions.style.pointerEvents = elements.settingNotifications.checked ? 'auto' : 'none';
+  }
+  saveSettings();
+});
+elements.threshold75?.addEventListener('change', saveSettings);
+elements.threshold90?.addEventListener('change', saveSettings);
+elements.threshold100?.addEventListener('change', saveSettings);
+elements.settingRefreshInterval?.addEventListener('change', saveSettings);
 
 elements.orgIdInput?.addEventListener('keypress', (e) => {
   if (e.key === 'Enter') {

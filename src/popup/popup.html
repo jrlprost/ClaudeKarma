@@ -175,23 +175,16 @@
 
         <!-- Right: Weekly Stats (single card) -->
         <div class="weekly-card">
-          <!-- Stats at top -->
-          <div class="stats-content">
-            <!-- All Models -->
-            <div class="stat-row">
-              <div class="stat-header">
-                <span class="stat-label">All Models</span>
-                <span id="all-models-percentage" class="stat-value">0%</span>
-              </div>
-              <div class="stat-bar">
-                <div id="all-models-progress" class="stat-fill" style="width: 0%"></div>
-              </div>
-            </div>
+          <!-- Model tabs -->
+          <div class="model-tabs" id="model-tabs">
+            <button class="model-tab active" data-model="all">All</button>
+          </div>
 
-            <!-- Model-specific (Sonnet/Opus/etc) -->
+          <!-- Stats content (dynamically updated) -->
+          <div class="stats-content">
             <div class="stat-row">
               <div class="stat-header">
-                <span id="model-label" class="stat-label">Model</span>
+                <span id="model-label" class="stat-label">All Models</span>
                 <span id="model-percentage" class="stat-value">0%</span>
               </div>
               <div class="stat-bar">
@@ -205,6 +198,26 @@
             <span class="weekly-title">7-Day Limit</span>
             <span id="weekly-reset" class="weekly-reset">--</span>
           </div>
+        </div>
+      </div>
+
+      <!-- Random Tip -->
+      <!-- Usage Activity Heatmap -->
+      <div class="heatmap-section">
+        <div class="heatmap-title">
+          <span class="heatmap-title-label">Activity</span>
+          <div class="heatmap-controls">
+            <button class="heatmap-period active" data-period="week" id="heatmap-week">Week</button>
+            <button class="heatmap-period" data-period="month" id="heatmap-month">Month</button>
+          </div>
+        </div>
+        <div class="heatmap-content" id="heatmap-content">
+          <div class="heatmap-hours" id="heatmap-hours"></div>
+          <div class="heatmap-grid-wrapper">
+            <div class="heatmap-days" id="heatmap-days"></div>
+            <div class="heatmap-grid" id="heatmap-grid"></div>
+          </div>
+          <div class="heatmap-tooltip" id="heatmap-tooltip"></div>
         </div>
       </div>
 
@@ -249,6 +262,71 @@
         </button>
       </div>
     </footer>
+
+    <!-- Settings Panel (slide-over) -->
+    <div id="settings-panel" class="settings-panel">
+      <div class="settings-header">
+        <button id="settings-back" class="icon-btn icon-btn-sm" title="Back">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="19" y1="12" x2="5" y2="12"/>
+            <polyline points="12 19 5 12 12 5"/>
+          </svg>
+        </button>
+        <span class="settings-title">Settings</span>
+      </div>
+
+      <div class="settings-body">
+        <!-- Notifications -->
+        <div class="settings-section">
+          <div class="settings-section-title">Notifications</div>
+          <label class="settings-toggle">
+            <span>Enable notifications</span>
+            <input type="checkbox" id="setting-notifications" checked>
+            <span class="toggle-slider"></span>
+          </label>
+          <div class="settings-thresholds" id="threshold-options">
+            <label class="settings-checkbox">
+              <input type="checkbox" id="threshold-75" checked>
+              <span>Alert at 75%</span>
+            </label>
+            <label class="settings-checkbox">
+              <input type="checkbox" id="threshold-90" checked>
+              <span>Alert at 90%</span>
+            </label>
+            <label class="settings-checkbox">
+              <input type="checkbox" id="threshold-100" checked>
+              <span>Alert at 100%</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Refresh Interval -->
+        <div class="settings-section">
+          <div class="settings-section-title">Refresh Interval</div>
+          <div class="settings-select-group">
+            <select id="setting-refresh-interval" class="settings-select">
+              <option value="1">Every 1 minute</option>
+              <option value="2">Every 2 minutes</option>
+              <option value="5" selected>Every 5 minutes</option>
+              <option value="10">Every 10 minutes</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Data -->
+        <div class="settings-section">
+          <div class="settings-section-title">Data</div>
+          <button id="clear-history-btn" class="settings-btn-danger">Clear Usage History</button>
+          <button id="reset-setup-btn" class="settings-btn-secondary">Reset Account Setup</button>
+        </div>
+
+        <!-- About -->
+        <div class="settings-section settings-about">
+          <div class="settings-section-title">About</div>
+          <span class="settings-version" id="settings-version">ClaudeKarma v--</span>
+        </div>
+      </div>
+    </div>
   </div>
 
   <script src="popup.js" type="module"></script>
