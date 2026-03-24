@@ -26,6 +26,13 @@ chrome.runtime.onInstalled.addListener(async (details) => {
     });
   }
 
+  // Open "What's New" page on extension update
+  if (details.reason === 'update') {
+    chrome.tabs.create({
+      url: chrome.runtime.getURL('update/update.html')
+    });
+  }
+
   const existingData = await storage.getUsageData();
   if (!existingData.lastFetchedAt) {
     await storage.setUsageData(existingData);
