@@ -907,13 +907,11 @@ body {
 }
 
 .heatmap-hour-label {
-  flex: 1;
+  height: 10px;
   font-size: 8px;
   color: var(--text-muted);
-  line-height: 1;
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
+  line-height: 10px;
+  text-align: right;
   font-family: 'Geist Mono', monospace;
 }
 
@@ -932,7 +930,7 @@ body {
 
 .heatmap-cell {
   width: 100%;
-  aspect-ratio: 1;
+  height: 10px;
   border-radius: 2px;
   background: var(--heatmap-0);
   cursor: pointer;
