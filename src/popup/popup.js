@@ -692,20 +692,11 @@ function getHeatmapLevel(percentage) {
 async function renderHeatmap() {
   if (!heatmapGrid) return;
 
+  const days = heatmapPeriod === 'week' ? 7 : 30;
   const now = new Date();
   const startDate = new Date(now);
-
-  if (heatmapPeriod === 'week') {
-    // Start from Monday of current week
-    const dayOfWeek = startDate.getDay(); // 0=Sun, 1=Mon, ...
-    const daysToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
-    startDate.setDate(startDate.getDate() - daysToMonday);
-  } else {
-    startDate.setDate(startDate.getDate() - 29);
-  }
+  startDate.setDate(startDate.getDate() - days + 1);
   startDate.setHours(0, 0, 0, 0);
-
-  const days = Math.floor((now.getTime() - startDate.getTime()) / (24 * 60 * 60 * 1000)) + 1;
 
   // Fetch history
   let history = [];
