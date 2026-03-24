@@ -171,77 +171,115 @@ async function extractFromDOM() {
     currentSession: { percentage: 0, resetTimestamp: null },
     weeklyLimits: {
       allModels: { percentage: 0, resetTimestamp: null, resetDay: null, resetTime: null },
-      sonnetOnly: { percentage: 0, resetTimestamp: null, resetDay: null, resetTime: null }
+      modelSpecific: { percentage: 0, resetTimestamp: null, resetDay: null, resetTime: null, modelName: null }
     }
   };
 
-  // Find all text containing percentages
-  const allElements = document.querySelectorAll('*');
-  const percentageElements = [];
-
-  for (const el of allElements) {
-    if (el.childElementCount === 0) { // Leaf nodes only
-      const text = el.textContent?.trim();
-      if (text && /\d+\s*%/.test(text)) {
-        percentageElements.push({ element: el, text });
-      }
-    }
-  }
-
-  console.log('[ClaudeKarma] Found percentage elements:', percentageElements.length);
-
-  // Look for progress bars
-  const progressBars = document.querySelectorAll('[role="progressbar"], progress, [class*="progress"], [class*="Progress"]');
+  // Strategy 1: Use aria-valuenow from progressbars (language-independent)
+  const progressBars = document.querySelectorAll('[role="progressbar"]');
   console.log('[ClaudeKarma] Found progress bars:', progressBars.length);
 
-  // Look for specific section headers
-  const headers = Array.from(document.querySelectorAll('h1, h2, h3, h4, h5, h6, [class*="heading"], [class*="title"]'));
+  if (progressBars.length >= 1) {
+    // First progressbar in the usage section = session limit
+    const sessionPct = parseInt(progressBars[0].getAttribute('aria-valuenow') || '0', 10);
+    usageData.currentSession.percentage = sessionPct;
 
-  // Try to find "Current Session" section
-  for (const header of headers) {
-    const text = header.textContent?.toLowerCase() || '';
-    if (text.includes('session') || text.includes('current')) {
-      console.log('[ClaudeKarma] Found session header:', header.textContent);
-      const section = header.closest('section, div, article') || header.parentElement;
-      const sectionData = extractSectionData(section);
-      if (sectionData.percentage !== null) {
-        usageData.currentSession = sectionData;
+    // Find reset text near the session progressbar
+    const sessionContainer = progressBars[0].closest('.flex.flex-row, div') || progressBars[0].parentElement?.parentElement;
+    if (sessionContainer) {
+      const resetText = findResetText(sessionContainer);
+      if (resetText) {
+        Object.assign(usageData.currentSession, parseResetTimeText(resetText));
       }
     }
   }
 
-  // Try to find "Weekly" section
-  for (const header of headers) {
-    const text = header.textContent?.toLowerCase() || '';
-    if (text.includes('weekly') || text.includes('limit')) {
-      console.log('[ClaudeKarma] Found weekly header:', header.textContent);
-      const section = header.closest('section, div, article') || header.parentElement;
+  if (progressBars.length >= 2) {
+    // Second progressbar = all models weekly
+    const allModelsPct = parseInt(progressBars[1].getAttribute('aria-valuenow') || '0', 10);
+    usageData.weeklyLimits.allModels.percentage = allModelsPct;
 
-      // Look for "All Models" and "Sonnet Only" subsections
-      const subsections = section.querySelectorAll('[class*="card"], [class*="row"], [class*="item"]');
-      for (const subsection of subsections) {
-        const subsectionText = subsection.textContent?.toLowerCase() || '';
-        const subsectionData = extractSectionData(subsection);
+    const allModelsContainer = progressBars[1].closest('.flex.flex-row, div') || progressBars[1].parentElement?.parentElement;
+    if (allModelsContainer) {
+      const resetText = findResetText(allModelsContainer);
+      if (resetText) {
+        Object.assign(usageData.weeklyLimits.allModels, parseResetTimeText(resetText));
+      }
+    }
+  }
 
-        if (subsectionText.includes('all model')) {
-          usageData.weeklyLimits.allModels = subsectionData;
-        } else if (subsectionText.includes('sonnet')) {
-          usageData.weeklyLimits.sonnetOnly = subsectionData;
+  if (progressBars.length >= 3) {
+    // Third progressbar = model-specific (Sonnet, etc.)
+    const modelPct = parseInt(progressBars[2].getAttribute('aria-valuenow') || '0', 10);
+    usageData.weeklyLimits.modelSpecific = {
+      percentage: modelPct,
+      resetTimestamp: null,
+      resetDay: null,
+      resetTime: null,
+      modelName: detectModelName(progressBars[2])
+    };
+
+    const modelContainer = progressBars[2].closest('.flex.flex-row, div') || progressBars[2].parentElement?.parentElement;
+    if (modelContainer) {
+      const resetText = findResetText(modelContainer);
+      if (resetText) {
+        Object.assign(usageData.weeklyLimits.modelSpecific, parseResetTimeText(resetText));
+      }
+    }
+  }
+
+  // Fallback: try text-based extraction if no progressbars found
+  if (progressBars.length === 0) {
+    console.log('[ClaudeKarma] No progressbars found, trying text extraction...');
+    const allElements = document.querySelectorAll('*');
+    for (const el of allElements) {
+      if (el.childElementCount === 0) {
+        const text = el.textContent?.trim();
+        if (text && /\d+\s*%/.test(text) && usageData.currentSession.percentage === 0) {
+          const pct = extractPercentage(text);
+          if (pct !== null) usageData.currentSession.percentage = pct;
         }
       }
     }
   }
 
-  // Fallback: use first percentage found as current session
-  if (usageData.currentSession.percentage === 0 && percentageElements.length > 0) {
-    const firstPercentage = extractPercentage(percentageElements[0].text);
-    if (firstPercentage !== null) {
-      usageData.currentSession.percentage = firstPercentage;
-    }
-  }
-
   console.log('[ClaudeKarma] Extracted usage data:', usageData);
   return usageData;
+}
+
+/**
+ * Find reset time text near a progress bar element
+ */
+function findResetText(container) {
+  if (!container) return null;
+  // Walk up to find the parent row that contains reset info
+  const wrapper = container.closest('.flex-wrap') || container.parentElement?.closest('.flex-wrap') || container;
+  const texts = wrapper.querySelectorAll('p, span');
+  for (const el of texts) {
+    const t = el.textContent?.trim() || '';
+    // Match reset patterns in any language (look for time-like patterns)
+    if (/\d+\s*(h|min|m\b)/i.test(t) || /\d{1,2}:\d{2}/i.test(t) ||
+        /(reset|réinitial|reinici|ripristin|zurück)/i.test(t)) {
+      return t;
+    }
+  }
+  return null;
+}
+
+/**
+ * Detect model name near a progress bar
+ */
+function detectModelName(progressBar) {
+  const wrapper = progressBar.closest('.flex-wrap') || progressBar.parentElement?.parentElement;
+  if (!wrapper) return null;
+  const texts = wrapper.querySelectorAll('p');
+  for (const el of texts) {
+    const t = el.textContent?.toLowerCase() || '';
+    if (/sonnet/i.test(t)) return 'Sonnet';
+    if (/opus/i.test(t)) return 'Opus';
+    if (/haiku/i.test(t)) return 'Haiku';
+  }
+  return null;
 }
 
 /**
@@ -287,11 +325,12 @@ function normalizeUsageData(rawData) {
         resetDay: null,
         resetTime: null
       },
-      sonnetOnly: {
+      modelSpecific: {
         percentage: rawData.weeklySonnet ?? rawData.sonnetUsage ?? 0,
         resetTimestamp: rawData.weeklyResetTime ?? null,
         resetDay: null,
-        resetTime: null
+        resetTime: null,
+        modelName: null
       }
     }
   };
