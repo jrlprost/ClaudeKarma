@@ -891,46 +891,61 @@ body {
   color: var(--text-primary);
 }
 
-.heatmap-grid-wrapper {
+/* Hour labels (X-axis, top) */
+.heatmap-hours {
   display: flex;
   gap: 2px;
-  overflow-x: auto;
+  padding-left: 28px;
+  margin-bottom: 3px;
 }
 
-.heatmap-hours {
+.heatmap-hour-label {
+  flex: 1;
+  font-size: 8px;
+  color: var(--text-muted);
+  text-align: center;
+  font-family: 'Geist Mono', monospace;
+}
+
+.heatmap-grid-wrapper {
+  display: flex;
+  gap: 4px;
+}
+
+/* Day labels (Y-axis, left) */
+.heatmap-days {
   display: flex;
   flex-direction: column;
   gap: 2px;
   flex-shrink: 0;
-  padding-right: 4px;
-  width: 18px;
+  width: 24px;
 }
 
-.heatmap-hour-label {
-  height: 10px;
-  font-size: 8px;
+.heatmap-day-label {
+  height: 14px;
+  font-size: 9px;
   color: var(--text-muted);
-  line-height: 10px;
+  line-height: 14px;
   text-align: right;
   font-family: 'Geist Mono', monospace;
 }
 
+/* Grid: rows = days, columns = 2h blocks */
 .heatmap-grid {
-  display: flex;
-  gap: 2px;
-  flex: 1;
-}
-
-.heatmap-column {
   display: flex;
   flex-direction: column;
   gap: 2px;
   flex: 1;
 }
 
+.heatmap-row {
+  display: flex;
+  gap: 2px;
+}
+
 .heatmap-cell {
-  width: 100%;
-  height: 10px;
+  flex: 1;
+  height: 14px;
   border-radius: 2px;
   background: var(--heatmap-0);
   cursor: pointer;
@@ -940,21 +955,6 @@ body {
 .heatmap-cell:hover {
   outline: 1px solid var(--text-muted);
   outline-offset: -1px;
-}
-
-.heatmap-days {
-  display: flex;
-  gap: 2px;
-  padding-left: 22px;
-  margin-top: 3px;
-}
-
-.heatmap-day-label {
-  flex: 1;
-  font-size: 9px;
-  color: var(--text-muted);
-  font-family: 'Geist Mono', monospace;
-  text-align: center;
 }
 
 .heatmap-legend {

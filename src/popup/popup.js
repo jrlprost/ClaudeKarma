@@ -707,10 +707,10 @@ async function renderHeatmap() {
     console.error('[ClaudeKarma] Error loading history:', e);
   }
 
-  // Aggregate into 3-hour blocks per day (8 blocks)
+  // Aggregate into 2-hour blocks per day (12 blocks)
   // grid[dayIndex][block] = peak session percentage
-  const BLOCKS = 8;
-  const HOURS_PER_BLOCK = 3;
+  const BLOCKS = 12;
+  const HOURS_PER_BLOCK = 2;
   const grid = Array.from({ length: days }, () => Array(BLOCKS).fill(0));
 
   history.forEach(entry => {
@@ -722,26 +722,38 @@ async function renderHeatmap() {
     }
   });
 
-  // Clear grid
+  // Clear
   while (heatmapGrid.firstChild) heatmapGrid.removeChild(heatmapGrid.firstChild);
   while (heatmapHours.firstChild) heatmapHours.removeChild(heatmapHours.firstChild);
   while (heatmapDays.firstChild) heatmapDays.removeChild(heatmapDays.firstChild);
 
-  // Render time labels (8 blocks: 00, 03, 06, ... 21)
+  // Render hour labels (X-axis, top) — show every other label to avoid crowding
   for (let b = 0; b < BLOCKS; b++) {
     const label = document.createElement('div');
     label.className = 'heatmap-hour-label';
-    label.textContent = `${String(b * HOURS_PER_BLOCK).padStart(2, '0')}`;
+    label.textContent = b % 2 === 0 ? `${String(b * HOURS_PER_BLOCK).padStart(2, '0')}` : '';
     heatmapHours.appendChild(label);
   }
 
-  // Render grid columns (one per day)
+  // Render grid rows (one per day) and day labels (Y-axis, left)
   for (let d = 0; d < days; d++) {
-    const col = document.createElement('div');
-    col.className = 'heatmap-column';
-
     const date = new Date(startDate);
     date.setDate(date.getDate() + d);
+
+    // Day label
+    const dayLabel = document.createElement('div');
+    dayLabel.className = 'heatmap-day-label';
+    const labelInterval = heatmapPeriod === 'week' ? 1 : 3;
+    if (d % labelInterval === 0) {
+      dayLabel.textContent = heatmapPeriod === 'week'
+        ? DAY_NAMES[date.getDay()]
+        : `${SHORT_MONTHS[date.getMonth()]} ${date.getDate()}`;
+    }
+    heatmapDays.appendChild(dayLabel);
+
+    // Row of cells
+    const row = document.createElement('div');
+    row.className = 'heatmap-row';
 
     for (let b = 0; b < BLOCKS; b++) {
       const cell = document.createElement('div');
@@ -750,7 +762,7 @@ async function renderHeatmap() {
       cell.style.background = HEATMAP_COLORS[level];
 
       const pct = grid[d][b];
-      const dateStr = `${SHORT_MONTHS[date.getMonth()]} ${date.getDate()}`;
+      const dateStr = `${DAY_NAMES[date.getDay()]} ${SHORT_MONTHS[date.getMonth()]} ${date.getDate()}`;
       const startH = b * HOURS_PER_BLOCK;
       const endH = startH + HOURS_PER_BLOCK;
       const timeStr = `${String(startH).padStart(2, '0')}:00–${String(endH).padStart(2, '0')}:00`;
@@ -765,25 +777,10 @@ async function renderHeatmap() {
         heatmapTooltip.classList.remove('visible');
       });
 
-      col.appendChild(cell);
+      row.appendChild(cell);
     }
 
-    heatmapGrid.appendChild(col);
-  }
-
-  // Render day labels
-  const labelInterval = heatmapPeriod === 'week' ? 1 : 5;
-  for (let d = 0; d < days; d++) {
-    const date = new Date(startDate);
-    date.setDate(date.getDate() + d);
-    const label = document.createElement('div');
-    label.className = 'heatmap-day-label';
-    if (d % labelInterval === 0) {
-      label.textContent = heatmapPeriod === 'week'
-        ? DAY_NAMES[date.getDay()]
-        : `${date.getDate()}`;
-    }
-    heatmapDays.appendChild(label);
+    heatmapGrid.appendChild(row);
   }
 }
 
