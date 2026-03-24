@@ -18,7 +18,7 @@ let animationType = null;
 // Animation settings
 const ANIMATION_FPS = 30;
 const ANIMATION_INTERVAL = 1000 / ANIMATION_FPS;
-const PULSE_SPEED = 0.05;  // Rotation speed for warning animation
+const BLINK_SPEED = 0.08;  // Blink speed for critical usage warning
 const SPIN_SPEED = 0.15;
 
 /**
@@ -240,11 +240,12 @@ export async function updateIcon(sessionProgress, weeklyProgress, options) {
  * Animation frame update
  */
 function animationFrame() {
-  animationPhase += (animationType === 'spin' ? SPIN_SPEED : PULSE_SPEED);
+  animationPhase += (animationType === 'spin' ? SPIN_SPEED : BLINK_SPEED);
 
-  if (animationType === 'pulse') {
-    // Rotating animation for high usage warning
-    updateIcon(currentProgress.session, currentProgress.weekly, { rotationOffset: animationPhase }).catch(function() {});
+  if (animationType === 'blink') {
+    // Blinking glow for critical usage (>=90%)
+    const glowIntensity = (Math.sin(animationPhase) + 1) / 2; // oscillates 0-1
+    updateIcon(currentProgress.session, currentProgress.weekly, { glowIntensity: glowIntensity }).catch(function() {});
 
   } else if (animationType === 'spin') {
     updateIcon(0, 0, { showSpinner: true, spinOffset: animationPhase }).catch(function() {});

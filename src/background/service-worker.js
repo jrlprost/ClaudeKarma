@@ -512,9 +512,9 @@ async function refreshIcon() {
     // Stop any running animation and update with both values
     await stopAnimation(sessionProgress, weeklyProgress);
 
-    // Optional: Start pulse animation for high usage (>70%)
-    if (sessionPct >= 70 || weeklyPct >= 70) {
-      startAnimation('pulse', sessionProgress, weeklyProgress);
+    // Start blink animation for critical usage (>=90%)
+    if (sessionPct >= 90 || weeklyPct >= 90) {
+      startAnimation('blink', sessionProgress, weeklyProgress);
     }
 
     console.log('[ClaudeKarma] Icon: session=' + sessionPct + '%, weekly=' + weeklyPct + '%');
