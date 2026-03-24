@@ -220,6 +220,45 @@
           </svg>
         </button>
       </div>
+
+      <!-- Usage Activity Heatmap -->
+      <div class="heatmap-section">
+        <button class="heatmap-toggle" id="heatmap-toggle">
+          <span class="heatmap-toggle-label">
+            <svg class="heatmap-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="7" height="7"/>
+              <rect x="14" y="3" width="7" height="7"/>
+              <rect x="14" y="14" width="7" height="7"/>
+              <rect x="3" y="14" width="7" height="7"/>
+            </svg>
+            <span>Usage Activity</span>
+          </span>
+          <svg class="heatmap-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6 9 12 15 18 9"/>
+          </svg>
+        </button>
+        <div class="heatmap-content" id="heatmap-content">
+          <div class="heatmap-controls">
+            <button class="heatmap-period active" data-period="week" id="heatmap-week">Week</button>
+            <button class="heatmap-period" data-period="month" id="heatmap-month">Month</button>
+          </div>
+          <div class="heatmap-grid-wrapper">
+            <div class="heatmap-hours" id="heatmap-hours"></div>
+            <div class="heatmap-grid" id="heatmap-grid"></div>
+          </div>
+          <div class="heatmap-days" id="heatmap-days"></div>
+          <div class="heatmap-legend">
+            <span class="heatmap-legend-label">Less</span>
+            <span class="heatmap-cell" style="background: var(--heatmap-0)"></span>
+            <span class="heatmap-cell" style="background: var(--heatmap-1)"></span>
+            <span class="heatmap-cell" style="background: var(--heatmap-2)"></span>
+            <span class="heatmap-cell" style="background: var(--heatmap-3)"></span>
+            <span class="heatmap-cell" style="background: var(--heatmap-4)"></span>
+            <span class="heatmap-legend-label">More</span>
+          </div>
+          <div class="heatmap-tooltip" id="heatmap-tooltip"></div>
+        </div>
+      </div>
     </main>
 
     <!-- Footer -->

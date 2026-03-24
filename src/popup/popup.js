@@ -662,6 +662,150 @@ function displayRandomTip() {
 }
 
 // ============================================
+// Heatmap
+// ============================================
+
+const heatmapToggle = document.getElementById('heatmap-toggle');
+const heatmapContent = document.getElementById('heatmap-content');
+const heatmapSection = document.querySelector('.heatmap-section');
+const heatmapGrid = document.getElementById('heatmap-grid');
+const heatmapHours = document.getElementById('heatmap-hours');
+const heatmapDays = document.getElementById('heatmap-days');
+const heatmapTooltip = document.getElementById('heatmap-tooltip');
+const heatmapWeekBtn = document.getElementById('heatmap-week');
+const heatmapMonthBtn = document.getElementById('heatmap-month');
+
+let heatmapPeriod = 'week';
+
+const HEATMAP_COLORS = ['var(--heatmap-0)', 'var(--heatmap-1)', 'var(--heatmap-2)', 'var(--heatmap-3)', 'var(--heatmap-4)'];
+const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const SHORT_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+function getHeatmapLevel(percentage) {
+  if (percentage <= 0) return 0;
+  if (percentage < 25) return 1;
+  if (percentage < 50) return 2;
+  if (percentage < 75) return 3;
+  return 4;
+}
+
+async function renderHeatmap() {
+  if (!heatmapGrid) return;
+
+  const days = heatmapPeriod === 'week' ? 7 : 30;
+  const now = new Date();
+  const startDate = new Date(now);
+  startDate.setDate(startDate.getDate() - days + 1);
+  startDate.setHours(0, 0, 0, 0);
+
+  // Fetch history
+  let history = [];
+  try {
+    const result = await chrome.storage.local.get('usageHistory');
+    history = (result.usageHistory || []).filter(e => e.t >= startDate.getTime());
+  } catch (e) {
+    console.error('[ClaudeKarma] Error loading history:', e);
+  }
+
+  // Aggregate into hourly peaks per day
+  // grid[dayIndex][hour] = peak session percentage
+  const grid = Array.from({ length: days }, () => Array(24).fill(0));
+
+  history.forEach(entry => {
+    const date = new Date(entry.t);
+    const dayIndex = Math.floor((date.getTime() - startDate.getTime()) / (24 * 60 * 60 * 1000));
+    if (dayIndex >= 0 && dayIndex < days) {
+      const hour = date.getHours();
+      grid[dayIndex][hour] = Math.max(grid[dayIndex][hour], entry.s || 0);
+    }
+  });
+
+  // Clear grid
+  while (heatmapGrid.firstChild) heatmapGrid.removeChild(heatmapGrid.firstChild);
+  while (heatmapHours.firstChild) heatmapHours.removeChild(heatmapHours.firstChild);
+  while (heatmapDays.firstChild) heatmapDays.removeChild(heatmapDays.firstChild);
+
+  // Render hour labels (every 3 hours)
+  for (let h = 0; h < 24; h++) {
+    const label = document.createElement('div');
+    label.className = 'heatmap-hour-label';
+    label.textContent = h % 3 === 0 ? `${String(h).padStart(2, '0')}` : '';
+    heatmapHours.appendChild(label);
+  }
+
+  // Render grid columns (one per day)
+  for (let d = 0; d < days; d++) {
+    const col = document.createElement('div');
+    col.className = 'heatmap-column';
+
+    const date = new Date(startDate);
+    date.setDate(date.getDate() + d);
+
+    for (let h = 0; h < 24; h++) {
+      const cell = document.createElement('div');
+      cell.className = 'heatmap-cell';
+      const level = getHeatmapLevel(grid[d][h]);
+      cell.style.background = HEATMAP_COLORS[level];
+
+      const pct = grid[d][h];
+      const dateStr = `${SHORT_MONTHS[date.getMonth()]} ${date.getDate()}`;
+      const timeStr = `${String(h).padStart(2, '0')}:00`;
+
+      cell.addEventListener('mouseenter', (e) => {
+        heatmapTooltip.textContent = `${dateStr} ${timeStr} — ${pct}%`;
+        heatmapTooltip.classList.add('visible');
+        heatmapTooltip.style.left = `${e.clientX + 8}px`;
+        heatmapTooltip.style.top = `${e.clientY - 28}px`;
+      });
+      cell.addEventListener('mouseleave', () => {
+        heatmapTooltip.classList.remove('visible');
+      });
+
+      col.appendChild(cell);
+    }
+
+    heatmapGrid.appendChild(col);
+  }
+
+  // Render day labels
+  const labelInterval = heatmapPeriod === 'week' ? 1 : 5;
+  for (let d = 0; d < days; d++) {
+    const date = new Date(startDate);
+    date.setDate(date.getDate() + d);
+    const label = document.createElement('div');
+    label.className = 'heatmap-day-label';
+    label.style.width = '8px';
+    if (d % labelInterval === 0) {
+      label.textContent = heatmapPeriod === 'week'
+        ? DAY_NAMES[date.getDay()]
+        : `${date.getDate()}`;
+    }
+    heatmapDays.appendChild(label);
+  }
+}
+
+heatmapToggle?.addEventListener('click', () => {
+  heatmapSection?.classList.toggle('open');
+  if (heatmapSection?.classList.contains('open')) {
+    renderHeatmap();
+  }
+});
+
+heatmapWeekBtn?.addEventListener('click', () => {
+  heatmapPeriod = 'week';
+  heatmapWeekBtn.classList.add('active');
+  heatmapMonthBtn?.classList.remove('active');
+  renderHeatmap();
+});
+
+heatmapMonthBtn?.addEventListener('click', () => {
+  heatmapPeriod = 'month';
+  heatmapMonthBtn.classList.add('active');
+  heatmapWeekBtn?.classList.remove('active');
+  renderHeatmap();
+});
+
+// ============================================
 // Event Listeners
 // ============================================
 
