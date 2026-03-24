@@ -296,8 +296,15 @@ function selectModelTab(modelName, models, allModelsData, fullData) {
   currentModelTab = modelName;
 
   if (modelName === 'all') {
-    const pct = allModelsData?.percentage ?? 0;
-    updateModelDisplay('All Models', pct, allModelsData?.resetTimestamp);
+    let pct = allModelsData?.percentage ?? 0;
+    let resetTs = allModelsData?.resetTimestamp;
+    // If allModels is 0 but individual models have data, use the max
+    if (pct === 0 && models.length > 0) {
+      const maxModel = models.reduce((a, b) => a.percentage > b.percentage ? a : b);
+      pct = maxModel.percentage;
+      resetTs = resetTs || maxModel.resetTimestamp;
+    }
+    updateModelDisplay('All Models', pct, resetTs);
   } else {
     const model = models.find(m => m.name === modelName);
     if (model) {
@@ -423,8 +430,22 @@ function renderUsageData(data) {
   }
 
   // Weekly - Build model tabs and show selected model
-  const models = data.weeklyLimits?.models || [];
+  // Handle both new format (models array) and legacy (modelSpecific/sonnetOnly)
+  let models = data.weeklyLimits?.models || [];
   const allModelsData = data.weeklyLimits?.allModels || {};
+
+  // If no models array, build from legacy modelSpecific/sonnetOnly
+  if (models.length === 0) {
+    const legacy = data.weeklyLimits?.modelSpecific || data.weeklyLimits?.sonnetOnly;
+    if (legacy?.modelName && legacy.percentage > 0) {
+      models = [{
+        name: legacy.modelName,
+        percentage: legacy.percentage,
+        resetTimestamp: legacy.resetTimestamp
+      }];
+    }
+  }
+
   buildModelTabs(models, allModelsData, data);
 
   // Weekly Reset
