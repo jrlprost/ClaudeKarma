@@ -97,6 +97,19 @@ const elements = {
   saveOrgBtn: document.getElementById('save-org-btn'),
   settingsBtn: document.getElementById('settings-btn'),
 
+  // Settings panel
+  settingsPanel: document.getElementById('settings-panel'),
+  settingsBack: document.getElementById('settings-back'),
+  settingNotifications: document.getElementById('setting-notifications'),
+  thresholdOptions: document.getElementById('threshold-options'),
+  threshold75: document.getElementById('threshold-75'),
+  threshold90: document.getElementById('threshold-90'),
+  threshold100: document.getElementById('threshold-100'),
+  settingRefreshInterval: document.getElementById('setting-refresh-interval'),
+  clearHistoryBtn: document.getElementById('clear-history-btn'),
+  resetSetupBtn: document.getElementById('reset-setup-btn'),
+  settingsVersion: document.getElementById('settings-version'),
+
   // Tips
   tipsBtn: document.getElementById('tips-btn'),
   tipsNewDot: document.getElementById('tips-new-dot'),
@@ -453,8 +466,92 @@ async function handleSaveOrgId() {
   }
 }
 
-function handleSettings() {
-  showSetup();
+// ============================================
+// Settings Panel
+// ============================================
+
+async function openSettings() {
+  // Load current settings
+  try {
+    const result = await chrome.storage.local.get('settings');
+    const settings = result.settings || {};
+
+    if (elements.settingNotifications) {
+      elements.settingNotifications.checked = settings.notifications?.enabled !== false;
+    }
+
+    const thresholds = settings.notifications?.thresholds || [75, 90, 100];
+    if (elements.threshold75) elements.threshold75.checked = thresholds.includes(75);
+    if (elements.threshold90) elements.threshold90.checked = thresholds.includes(90);
+    if (elements.threshold100) elements.threshold100.checked = thresholds.includes(100);
+
+    if (elements.thresholdOptions) {
+      elements.thresholdOptions.style.opacity = elements.settingNotifications?.checked ? '1' : '0.4';
+      elements.thresholdOptions.style.pointerEvents = elements.settingNotifications?.checked ? 'auto' : 'none';
+    }
+
+    if (elements.settingRefreshInterval) {
+      elements.settingRefreshInterval.value = String(settings.refreshInterval || 5);
+    }
+
+    if (elements.settingsVersion) {
+      const manifest = chrome.runtime.getManifest();
+      elements.settingsVersion.textContent = `ClaudeKarma v${manifest.version}`;
+    }
+  } catch (e) {
+    console.error('[ClaudeKarma Popup] Error loading settings:', e);
+  }
+
+  elements.settingsPanel?.classList.add('open');
+}
+
+function closeSettings() {
+  elements.settingsPanel?.classList.remove('open');
+}
+
+async function saveSettings() {
+  try {
+    const thresholds = [];
+    if (elements.threshold75?.checked) thresholds.push(75);
+    if (elements.threshold90?.checked) thresholds.push(90);
+    if (elements.threshold100?.checked) thresholds.push(100);
+
+    const settings = {
+      notifications: {
+        enabled: elements.settingNotifications?.checked ?? true,
+        thresholds: thresholds
+      },
+      refreshInterval: parseInt(elements.settingRefreshInterval?.value || '5', 10)
+    };
+
+    const current = await chrome.storage.local.get('settings');
+    await chrome.storage.local.set({
+      settings: { ...current.settings, ...settings }
+    });
+
+    // Notify service worker to update alarm interval
+    chrome.runtime.sendMessage({ type: 'UPDATE_SETTINGS', settings });
+  } catch (e) {
+    console.error('[ClaudeKarma Popup] Error saving settings:', e);
+  }
+}
+
+async function handleClearHistory() {
+  if (confirm('Clear all usage history? This cannot be undone.')) {
+    await chrome.storage.local.set({ usageHistory: [] });
+    elements.clearHistoryBtn.textContent = 'Cleared!';
+    setTimeout(() => {
+      elements.clearHistoryBtn.textContent = 'Clear Usage History';
+    }, 2000);
+  }
+}
+
+async function handleResetSetup() {
+  if (confirm('Reset account setup? You will need to reconnect.')) {
+    await chrome.storage.local.remove(['settings']);
+    closeSettings();
+    showSetup();
+  }
 }
 
 // ============================================
@@ -498,9 +595,25 @@ function displayRandomTip() {
 elements.refreshBtn?.addEventListener('click', triggerRefresh);
 elements.autoDetectBtn?.addEventListener('click', handleAutoDetect);
 elements.saveOrgBtn?.addEventListener('click', handleSaveOrgId);
-elements.settingsBtn?.addEventListener('click', handleSettings);
+elements.settingsBtn?.addEventListener('click', openSettings);
+elements.settingsBack?.addEventListener('click', closeSettings);
 elements.tipsBtn?.addEventListener('click', handleTipsClick);
 elements.seeMoreTips?.addEventListener('click', handleTipsClick);
+elements.clearHistoryBtn?.addEventListener('click', handleClearHistory);
+elements.resetSetupBtn?.addEventListener('click', handleResetSetup);
+
+// Settings auto-save on change
+elements.settingNotifications?.addEventListener('change', () => {
+  if (elements.thresholdOptions) {
+    elements.thresholdOptions.style.opacity = elements.settingNotifications.checked ? '1' : '0.4';
+    elements.thresholdOptions.style.pointerEvents = elements.settingNotifications.checked ? 'auto' : 'none';
+  }
+  saveSettings();
+});
+elements.threshold75?.addEventListener('change', saveSettings);
+elements.threshold90?.addEventListener('change', saveSettings);
+elements.threshold100?.addEventListener('change', saveSettings);
+elements.settingRefreshInterval?.addEventListener('change', saveSettings);
 
 elements.orgIdInput?.addEventListener('keypress', (e) => {
   if (e.key === 'Enter') {

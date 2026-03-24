@@ -48,12 +48,14 @@ chrome.runtime.onStartup.addListener(async () => {
 // ============================================
 
 async function setupAlarm() {
+  const settings = await storage.getSettings();
+  const interval = settings.refreshInterval || TIMING.REFRESH_INTERVAL_MINUTES;
   await chrome.alarms.clear(ALARMS.FETCH_USAGE);
   chrome.alarms.create(ALARMS.FETCH_USAGE, {
     delayInMinutes: 0.1,
-    periodInMinutes: TIMING.REFRESH_INTERVAL_MINUTES
+    periodInMinutes: interval
   });
-  console.log('[ClaudeKarma] Alarm set: refresh every ' + TIMING.REFRESH_INTERVAL_MINUTES + ' minutes');
+  console.log('[ClaudeKarma] Alarm set: refresh every ' + interval + ' minutes');
 }
 
 chrome.alarms.onAlarm.addListener(async (alarm) => {
@@ -448,6 +450,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     case 'SET_ORG_ID':
       storage.setSettings({ organizationId: message.orgId })
         .then(() => fetchUsageData())
+        .then(() => sendResponse({ success: true }))
+        .catch(err => sendResponse({ success: false, error: err.message }));
+      return true;
+
+    case 'UPDATE_SETTINGS':
+      setupAlarm()
         .then(() => sendResponse({ success: true }))
         .catch(err => sendResponse({ success: false, error: err.message }));
       return true;
