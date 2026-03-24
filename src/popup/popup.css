@@ -957,29 +957,6 @@ body {
   outline-offset: -1px;
 }
 
-.heatmap-legend {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  justify-content: flex-end;
-  margin-top: var(--space-md);
-}
-
-.heatmap-legend-label {
-  font-size: 7px;
-  color: var(--text-muted);
-  padding: 0 2px;
-}
-
-.heatmap-legend .heatmap-cell {
-  width: 6px;
-  height: 6px;
-  cursor: default;
-}
-
-.heatmap-legend .heatmap-cell:hover {
-  outline: none;
-}
 
 .heatmap-tooltip {
   display: none;
