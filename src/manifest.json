@@ -30,7 +30,8 @@
   
   "permissions": [
     "storage",
-    "alarms"
+    "alarms",
+    "notifications"
   ],
   
   "host_permissions": [

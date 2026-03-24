@@ -356,7 +356,67 @@ async function saveUsageData(data, source) {
     });
   } catch (e) { /* Popup not open */ }
 
+  await checkAndNotify(mergedData);
+
   console.log('[ClaudeKarma] Data saved from ' + source);
+}
+
+// ============================================
+// Notifications
+// ============================================
+
+const NOTIFICATION_THRESHOLDS = [75, 90, 100];
+
+async function checkAndNotify(usageData) {
+  const settings = await storage.getSettings();
+  if (!settings.notifications?.enabled) return;
+
+  const state = await storage.getNotificationState();
+  const sessionPct = usageData.currentSession?.percentage || 0;
+  const weeklyPct = usageData.weeklyLimits?.allModels?.percentage || 0;
+  const maxPct = Math.max(sessionPct, weeklyPct);
+
+  // Find the highest threshold crossed
+  const crossedThreshold = NOTIFICATION_THRESHOLDS.filter(t => maxPct >= t).pop() || 0;
+
+  // Only notify if we crossed a NEW threshold (higher than last notified)
+  if (crossedThreshold <= 0 || crossedThreshold <= state.lastNotifiedThreshold) {
+    // Reset if usage dropped below all thresholds
+    if (maxPct < NOTIFICATION_THRESHOLDS[0] && state.lastNotifiedThreshold > 0) {
+      await storage.setNotificationState({ lastNotifiedThreshold: 0 });
+    }
+    return;
+  }
+
+  // Determine which limit is higher
+  const isSession = sessionPct >= weeklyPct;
+  const pct = isSession ? sessionPct : weeklyPct;
+  const body = isSession
+    ? chrome.i18n.getMessage('notificationSessionHigh', [String(Math.round(pct))]) ||
+      `Your 5-hour session usage has reached ${Math.round(pct)}%`
+    : chrome.i18n.getMessage('notificationWeeklyHigh', [String(Math.round(pct))]) ||
+      `Your 7-day weekly usage has reached ${Math.round(pct)}%`;
+
+  const title = chrome.i18n.getMessage('notificationTitle') || 'ClaudeKarma — Usage Alert';
+
+  try {
+    chrome.notifications.create('usage-alert-' + crossedThreshold, {
+      type: 'basic',
+      iconUrl: chrome.runtime.getURL('icons/icon-128.png'),
+      title: title,
+      message: body,
+      priority: crossedThreshold >= 90 ? 2 : 1
+    });
+
+    await storage.setNotificationState({
+      lastNotifiedThreshold: crossedThreshold,
+      lastNotifiedAt: Date.now()
+    });
+
+    console.log('[ClaudeKarma] Notification sent: ' + crossedThreshold + '% threshold');
+  } catch (error) {
+    console.warn('[ClaudeKarma] Notification failed:', error.message);
+  }
 }
 
 // ============================================

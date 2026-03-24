@@ -67,5 +67,16 @@
   "notificationHighUsage": {
     "message": "Claude 사용량 $PERCENT$%",
     "placeholders": { "percent": { "content": "$1" } }
+  },
+  "notificationTitle": {
+    "message": "ClaudeKarma — 사용량 알림"
+  },
+  "notificationSessionHigh": {
+    "message": "5시간 세션 사용량이 $PERCENT$%에 도달했습니다",
+    "placeholders": { "percent": { "content": "$1" } }
+  },
+  "notificationWeeklyHigh": {
+    "message": "주간 사용량이 $PERCENT$%에 도달했습니다",
+    "placeholders": { "percent": { "content": "$1" } }
   }
 }

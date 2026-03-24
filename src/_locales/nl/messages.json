@@ -67,5 +67,16 @@
   "notificationHighUsage": {
     "message": "Claude-gebruik op $PERCENT$%",
     "placeholders": { "percent": { "content": "$1" } }
+  },
+  "notificationTitle": {
+    "message": "ClaudeKarma — Gebruikswaarschuwing"
+  },
+  "notificationSessionHigh": {
+    "message": "Je 5-uurs sessiegebruik heeft $PERCENT$% bereikt",
+    "placeholders": { "percent": { "content": "$1" } }
+  },
+  "notificationWeeklyHigh": {
+    "message": "Je wekelijks gebruik heeft $PERCENT$% bereikt",
+    "placeholders": { "percent": { "content": "$1" } }
   }
 }

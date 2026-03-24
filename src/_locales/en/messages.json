@@ -122,5 +122,29 @@
         "example": "90"
       }
     }
+  },
+  "notificationTitle": {
+    "message": "ClaudeKarma — Usage Alert",
+    "description": "Title for usage threshold notifications"
+  },
+  "notificationSessionHigh": {
+    "message": "Your 5-hour session usage has reached $PERCENT$%",
+    "description": "Notification body for high session usage",
+    "placeholders": {
+      "percent": {
+        "content": "$1",
+        "example": "90"
+      }
+    }
+  },
+  "notificationWeeklyHigh": {
+    "message": "Your 7-day weekly usage has reached $PERCENT$%",
+    "description": "Notification body for high weekly usage",
+    "placeholders": {
+      "percent": {
+        "content": "$1",
+        "example": "90"
+      }
+    }
   }
 }
