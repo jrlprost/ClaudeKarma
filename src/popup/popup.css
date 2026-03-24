@@ -900,36 +900,40 @@ body {
 .heatmap-hours {
   display: flex;
   flex-direction: column;
-  gap: 1px;
+  gap: 2px;
   flex-shrink: 0;
-  padding-right: 2px;
+  padding-right: 4px;
+  width: 18px;
 }
 
 .heatmap-hour-label {
-  height: 8px;
-  font-size: 7px;
+  flex: 1;
+  font-size: 8px;
   color: var(--text-muted);
-  line-height: 8px;
-  text-align: right;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
   font-family: 'Geist Mono', monospace;
 }
 
 .heatmap-grid {
   display: flex;
-  gap: 1px;
-  overflow-x: auto;
+  gap: 2px;
+  flex: 1;
 }
 
 .heatmap-column {
   display: flex;
   flex-direction: column;
-  gap: 1px;
+  gap: 2px;
+  flex: 1;
 }
 
 .heatmap-cell {
-  width: 8px;
-  height: 8px;
-  border-radius: 1px;
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 2px;
   background: var(--heatmap-0);
   cursor: pointer;
   transition: outline 0.1s;
@@ -942,13 +946,14 @@ body {
 
 .heatmap-days {
   display: flex;
-  gap: 1px;
+  gap: 2px;
   padding-left: 22px;
-  margin-top: 2px;
+  margin-top: 3px;
 }
 
 .heatmap-day-label {
-  font-size: 7px;
+  flex: 1;
+  font-size: 9px;
   color: var(--text-muted);
   font-family: 'Geist Mono', monospace;
   text-align: center;

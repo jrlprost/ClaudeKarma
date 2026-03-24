@@ -774,7 +774,6 @@ async function renderHeatmap() {
     date.setDate(date.getDate() + d);
     const label = document.createElement('div');
     label.className = 'heatmap-day-label';
-    label.style.width = '8px';
     if (d % labelInterval === 0) {
       label.textContent = heatmapPeriod === 'week'
         ? DAY_NAMES[date.getDay()]
