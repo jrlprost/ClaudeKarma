@@ -346,6 +346,7 @@ async function saveUsageData(data, source) {
   };
 
   await storage.setUsageData(mergedData);
+  await storage.appendUsageSnapshot(mergedData);
   await refreshIcon();
 
   try {
