@@ -127,15 +127,17 @@ body {
 /* Steps */
 .steps {
   display: flex;
-  flex-direction: column;
-  gap: 20px;
+  flex-direction: row;
+  gap: 16px;
 }
 
 .step {
   display: flex;
-  align-items: flex-start;
-  gap: 16px;
-  text-align: left;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  text-align: center;
+  flex: 1;
 }
 
 .step-number {
@@ -153,14 +155,15 @@ body {
 }
 
 .step-content {
-  flex: 1;
   display: flex;
-  gap: 16px;
+  flex-direction: column;
+  gap: 12px;
   align-items: center;
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid var(--border);
   border-radius: 6px;
   padding: 16px;
+  width: 100%;
 }
 
 .step-visual {
@@ -374,9 +377,18 @@ body {
     font-size: 28px;
   }
 
-  .step-content {
+  .steps {
     flex-direction: column;
-    align-items: flex-start;
+  }
+
+  .step {
+    flex-direction: row;
+    text-align: left;
+  }
+
+  .step-content {
+    flex-direction: row;
+    align-items: center;
   }
 
   .features {
