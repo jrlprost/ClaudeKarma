@@ -728,10 +728,10 @@ async function renderHeatmap() {
     console.error('[ClaudeKarma] Error loading history:', e);
   }
 
-  // Aggregate into 2-hour blocks per day (12 blocks)
-  // grid[dayIndex][block] = peak session percentage
-  const BLOCKS = 12;
-  const HOURS_PER_BLOCK = 2;
+  // Aggregate into 1-hour blocks per day (24 blocks)
+  // grid[dayIndex][hour] = peak session percentage
+  const BLOCKS = 24;
+  const HOURS_PER_BLOCK = 1;
   const grid = Array.from({ length: days }, () => Array(BLOCKS).fill(0));
 
   history.forEach(entry => {
@@ -748,11 +748,11 @@ async function renderHeatmap() {
   while (heatmapHours.firstChild) heatmapHours.removeChild(heatmapHours.firstChild);
   while (heatmapDays.firstChild) heatmapDays.removeChild(heatmapDays.firstChild);
 
-  // Render hour labels (X-axis, top) — show every other label to avoid crowding
+  // Render hour labels (X-axis, top) — show every 3rd to avoid crowding with 24 columns
   for (let b = 0; b < BLOCKS; b++) {
     const label = document.createElement('div');
     label.className = 'heatmap-hour-label';
-    label.textContent = b % 2 === 0 ? `${String(b * HOURS_PER_BLOCK).padStart(2, '0')}` : '';
+    label.textContent = b % 3 === 0 ? `${String(b).padStart(2, '0')}` : '';
     heatmapHours.appendChild(label);
   }
 
@@ -784,9 +784,7 @@ async function renderHeatmap() {
 
       const pct = grid[d][b];
       const dateStr = `${DAY_NAMES[date.getDay()]} ${SHORT_MONTHS[date.getMonth()]} ${date.getDate()}`;
-      const startH = b * HOURS_PER_BLOCK;
-      const endH = startH + HOURS_PER_BLOCK;
-      const timeStr = `${String(startH).padStart(2, '0')}:00–${String(endH).padStart(2, '0')}:00`;
+      const timeStr = `${String(b).padStart(2, '0')}:00`;
 
       cell.addEventListener('mouseenter', (e) => {
         heatmapTooltip.textContent = `${dateStr} ${timeStr} — ${pct}%`;

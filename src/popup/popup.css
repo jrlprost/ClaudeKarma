@@ -922,10 +922,10 @@ body {
 }
 
 .heatmap-day-label {
-  height: 14px;
+  height: 10px;
   font-size: 9px;
   color: var(--text-muted);
-  line-height: 14px;
+  line-height: 10px;
   text-align: right;
   font-family: 'Geist Mono', monospace;
 }
@@ -945,8 +945,8 @@ body {
 
 .heatmap-cell {
   flex: 1;
-  height: 14px;
-  border-radius: 2px;
+  height: 10px;
+  border-radius: 1px;
   background: var(--heatmap-0);
   cursor: pointer;
   transition: outline 0.1s;
