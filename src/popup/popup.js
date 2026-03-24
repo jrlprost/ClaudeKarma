@@ -707,16 +707,18 @@ async function renderHeatmap() {
     console.error('[ClaudeKarma] Error loading history:', e);
   }
 
-  // Aggregate into hourly peaks per day
-  // grid[dayIndex][hour] = peak session percentage
-  const grid = Array.from({ length: days }, () => Array(24).fill(0));
+  // Aggregate into 3-hour blocks per day (8 blocks)
+  // grid[dayIndex][block] = peak session percentage
+  const BLOCKS = 8;
+  const HOURS_PER_BLOCK = 3;
+  const grid = Array.from({ length: days }, () => Array(BLOCKS).fill(0));
 
   history.forEach(entry => {
     const date = new Date(entry.t);
     const dayIndex = Math.floor((date.getTime() - startDate.getTime()) / (24 * 60 * 60 * 1000));
     if (dayIndex >= 0 && dayIndex < days) {
-      const hour = date.getHours();
-      grid[dayIndex][hour] = Math.max(grid[dayIndex][hour], entry.s || 0);
+      const block = Math.floor(date.getHours() / HOURS_PER_BLOCK);
+      grid[dayIndex][block] = Math.max(grid[dayIndex][block], entry.s || 0);
     }
   });
 
@@ -725,11 +727,11 @@ async function renderHeatmap() {
   while (heatmapHours.firstChild) heatmapHours.removeChild(heatmapHours.firstChild);
   while (heatmapDays.firstChild) heatmapDays.removeChild(heatmapDays.firstChild);
 
-  // Render hour labels (every 3 hours)
-  for (let h = 0; h < 24; h++) {
+  // Render time labels (8 blocks: 00, 03, 06, ... 21)
+  for (let b = 0; b < BLOCKS; b++) {
     const label = document.createElement('div');
     label.className = 'heatmap-hour-label';
-    label.textContent = h % 3 === 0 ? `${String(h).padStart(2, '0')}` : '';
+    label.textContent = `${String(b * HOURS_PER_BLOCK).padStart(2, '0')}`;
     heatmapHours.appendChild(label);
   }
 
@@ -741,15 +743,17 @@ async function renderHeatmap() {
     const date = new Date(startDate);
     date.setDate(date.getDate() + d);
 
-    for (let h = 0; h < 24; h++) {
+    for (let b = 0; b < BLOCKS; b++) {
       const cell = document.createElement('div');
       cell.className = 'heatmap-cell';
-      const level = getHeatmapLevel(grid[d][h]);
+      const level = getHeatmapLevel(grid[d][b]);
       cell.style.background = HEATMAP_COLORS[level];
 
-      const pct = grid[d][h];
+      const pct = grid[d][b];
       const dateStr = `${SHORT_MONTHS[date.getMonth()]} ${date.getDate()}`;
-      const timeStr = `${String(h).padStart(2, '0')}:00`;
+      const startH = b * HOURS_PER_BLOCK;
+      const endH = startH + HOURS_PER_BLOCK;
+      const timeStr = `${String(startH).padStart(2, '0')}:00–${String(endH).padStart(2, '0')}:00`;
 
       cell.addEventListener('mouseenter', (e) => {
         heatmapTooltip.textContent = `${dateStr} ${timeStr} — ${pct}%`;
