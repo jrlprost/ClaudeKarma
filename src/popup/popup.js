@@ -678,7 +678,7 @@ const heatmapMonthBtn = document.getElementById('heatmap-month');
 let heatmapPeriod = 'week';
 
 const HEATMAP_COLORS = ['var(--heatmap-0)', 'var(--heatmap-1)', 'var(--heatmap-2)', 'var(--heatmap-3)', 'var(--heatmap-4)'];
-const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']; // indexed by getDay()
 const SHORT_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 function getHeatmapLevel(percentage) {
@@ -692,11 +692,20 @@ function getHeatmapLevel(percentage) {
 async function renderHeatmap() {
   if (!heatmapGrid) return;
 
-  const days = heatmapPeriod === 'week' ? 7 : 30;
   const now = new Date();
   const startDate = new Date(now);
-  startDate.setDate(startDate.getDate() - days + 1);
+
+  if (heatmapPeriod === 'week') {
+    // Start from Monday of current week
+    const dayOfWeek = startDate.getDay(); // 0=Sun, 1=Mon, ...
+    const daysToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+    startDate.setDate(startDate.getDate() - daysToMonday);
+  } else {
+    startDate.setDate(startDate.getDate() - 29);
+  }
   startDate.setHours(0, 0, 0, 0);
+
+  const days = Math.floor((now.getTime() - startDate.getTime()) / (24 * 60 * 60 * 1000)) + 1;
 
   // Fetch history
   let history = [];
