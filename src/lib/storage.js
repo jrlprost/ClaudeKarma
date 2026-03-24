@@ -136,20 +136,29 @@ export async function getLastFetchTime() {
 // ============================================
 
 /**
- * Append a usage snapshot to history
- * Format: { t: timestamp, s: sessionPct, w: weeklyPct, m: modelPct, mn: modelName }
+ * Append a usage snapshot to history with deltas and plan tier
+ * Format: { t, s, sd, w, wd, m, md, mn, p }
  */
-export async function appendUsageSnapshot(usageData) {
-  const snapshot = {
-    t: Date.now(),
-    s: Math.round(usageData.currentSession?.percentage || 0),
-    w: Math.round(usageData.weeklyLimits?.allModels?.percentage || 0),
-    m: Math.round(usageData.weeklyLimits?.modelSpecific?.percentage || 0),
-    mn: usageData.weeklyLimits?.modelSpecific?.modelName || null
-  };
+export async function appendUsageSnapshot(usageData, planTier) {
+  const s = Math.round(usageData.currentSession?.percentage || 0);
+  const w = Math.round(usageData.weeklyLimits?.allModels?.percentage || 0);
+  const m = Math.round(usageData.weeklyLimits?.modelSpecific?.percentage || 0);
 
+  // Get last snapshot to compute deltas
   const result = await get(STORAGE_KEYS.USAGE_HISTORY);
   const history = result[STORAGE_KEYS.USAGE_HISTORY] || [];
+  const last = history.length > 0 ? history[history.length - 1] : null;
+
+  // Compute deltas (positive only — a drop means a reset, delta = 0)
+  const sd = last ? Math.max(0, s - last.s) : 0;
+  const wd = last ? Math.max(0, w - last.w) : 0;
+  const md = last ? Math.max(0, m - last.m) : 0;
+
+  // Normalize plan tier to short key (e.g. "default_claude_max_20x" → "max_20x")
+  const p = planTier ? planTier.replace(/^default_claude_/, '') : null;
+
+  const snapshot = { t: Date.now(), s, sd, w, wd, m, md, mn: usageData.weeklyLimits?.modelSpecific?.modelName || null, p };
+
   history.push(snapshot);
 
   // Prune entries older than retention period

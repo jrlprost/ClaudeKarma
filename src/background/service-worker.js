@@ -320,6 +320,35 @@ async function triggerContentScript() {
 }
 
 // ============================================
+// Plan Tier Detection
+// ============================================
+
+/**
+ * Fetch the user's plan tier from the rate_limits API
+ * Returns tier string like "default_claude_max_20x" or null
+ */
+async function fetchPlanTier() {
+  try {
+    const settings = await storage.getSettings();
+    if (!settings.organizationId) return null;
+
+    const url = 'https://claude.ai/api/organizations/' + settings.organizationId + '/rate_limits';
+    const response = await fetch(url, {
+      credentials: 'include',
+      headers: { 'Accept': 'application/json' }
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      return data.rate_limit_tier || null;
+    }
+  } catch (error) {
+    console.warn('[ClaudeKarma] Plan tier fetch failed:', error.message);
+  }
+  return null;
+}
+
+// ============================================
 // Data Handling
 // ============================================
 
@@ -343,8 +372,11 @@ async function saveUsageData(data, source) {
     error: null
   };
 
+  // Fetch plan tier for snapshot context
+  const planTier = await fetchPlanTier();
+
   await storage.setUsageData(mergedData);
-  await storage.appendUsageSnapshot(mergedData);
+  await storage.appendUsageSnapshot(mergedData, planTier);
   await refreshIcon();
 
   try {
