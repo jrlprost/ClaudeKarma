@@ -175,23 +175,16 @@
 
         <!-- Right: Weekly Stats (single card) -->
         <div class="weekly-card">
-          <!-- Stats at top -->
-          <div class="stats-content">
-            <!-- All Models -->
-            <div class="stat-row">
-              <div class="stat-header">
-                <span class="stat-label">All Models</span>
-                <span id="all-models-percentage" class="stat-value">0%</span>
-              </div>
-              <div class="stat-bar">
-                <div id="all-models-progress" class="stat-fill" style="width: 0%"></div>
-              </div>
-            </div>
+          <!-- Model tabs -->
+          <div class="model-tabs" id="model-tabs">
+            <button class="model-tab active" data-model="all">All</button>
+          </div>
 
-            <!-- Model-specific (Sonnet/Opus/etc) -->
+          <!-- Stats content (dynamically updated) -->
+          <div class="stats-content">
             <div class="stat-row">
               <div class="stat-header">
-                <span id="model-label" class="stat-label">Model</span>
+                <span id="model-label" class="stat-label">All Models</span>
                 <span id="model-percentage" class="stat-value">0%</span>
               </div>
               <div class="stat-bar">

@@ -124,8 +124,7 @@ const elements = {
   sessionReset: document.getElementById('session-reset'),
 
   // Weekly Stats
-  allModelsProgress: document.getElementById('all-models-progress'),
-  allModelsPercentage: document.getElementById('all-models-percentage'),
+  modelTabs: document.getElementById('model-tabs'),
   modelLabel: document.getElementById('model-label'),
   modelProgress: document.getElementById('model-progress'),
   modelPercentage: document.getElementById('model-percentage'),
@@ -242,6 +241,89 @@ function updateStatBar(progressEl, percentageEl, percentage) {
   }
 }
 
+// Current selected model for tab state
+let currentModelTab = 'all';
+
+/**
+ * Build model tabs and display selected model data
+ */
+function buildModelTabs(models, allModelsData, fullData) {
+  if (!elements.modelTabs) return;
+
+  // Clear existing tabs safely
+  while (elements.modelTabs.firstChild) {
+    elements.modelTabs.removeChild(elements.modelTabs.firstChild);
+  }
+
+  const allTab = document.createElement('button');
+  allTab.className = 'model-tab' + (currentModelTab === 'all' ? ' active' : '');
+  allTab.dataset.model = 'all';
+  allTab.textContent = 'All';
+  allTab.addEventListener('click', () => selectModelTab('all', models, allModelsData, fullData));
+  elements.modelTabs.appendChild(allTab);
+
+  models.forEach(model => {
+    const tab = document.createElement('button');
+    tab.className = 'model-tab' + (currentModelTab === model.name ? ' active' : '');
+    tab.dataset.model = model.name;
+    tab.textContent = model.name;
+    tab.addEventListener('click', () => selectModelTab(model.name, models, allModelsData, fullData));
+    elements.modelTabs.appendChild(tab);
+  });
+
+  // If no models detected, fall back to legacy modelSpecific
+  if (models.length === 0) {
+    const legacy = fullData.weeklyLimits?.modelSpecific || fullData.weeklyLimits?.sonnetOnly;
+    if (legacy?.modelName) {
+      const tab = document.createElement('button');
+      tab.className = 'model-tab';
+      tab.dataset.model = legacy.modelName;
+      tab.textContent = legacy.modelName;
+      tab.addEventListener('click', () => {
+        currentModelTab = legacy.modelName;
+        updateModelDisplay(legacy.modelName, legacy.percentage, legacy.resetTimestamp);
+        updateTabActiveState();
+      });
+      elements.modelTabs.appendChild(tab);
+    }
+  }
+
+  // Display current selection
+  selectModelTab(currentModelTab, models, allModelsData, fullData);
+}
+
+function selectModelTab(modelName, models, allModelsData, fullData) {
+  currentModelTab = modelName;
+
+  if (modelName === 'all') {
+    const pct = allModelsData?.percentage ?? 0;
+    updateModelDisplay('All Models', pct, allModelsData?.resetTimestamp);
+  } else {
+    const model = models.find(m => m.name === modelName);
+    if (model) {
+      updateModelDisplay(model.name, model.percentage, model.resetTimestamp);
+    }
+  }
+
+  updateTabActiveState();
+}
+
+function updateModelDisplay(label, percentage, resetTimestamp) {
+  if (elements.modelLabel) elements.modelLabel.textContent = label;
+  updateStatBar(elements.modelProgress, elements.modelPercentage, percentage);
+  if (elements.weeklyReset && resetTimestamp) {
+    elements.weeklyReset.textContent = formatCountdown(resetTimestamp)
+      ? `Resets in ${formatCountdown(resetTimestamp)}` : '--';
+  }
+}
+
+function updateTabActiveState() {
+  if (!elements.modelTabs) return;
+  elements.modelTabs.querySelectorAll('.model-tab').forEach(tab => {
+    tab.classList.toggle('active', tab.dataset.model === currentModelTab);
+  });
+}
+
 // ============================================
 // Time Formatting
 // ============================================
@@ -340,19 +422,10 @@ function renderUsageData(data) {
     elements.sessionReset.textContent = formatResetInfo(data.currentSession);
   }
 
-  // Weekly - All Models
-  const allModelsPct = data.weeklyLimits?.allModels?.percentage ?? 0;
-  updateStatBar(elements.allModelsProgress, elements.allModelsPercentage, allModelsPct);
-
-  // Weekly - Model-specific (Sonnet/Opus/etc)
-  const modelData = data.weeklyLimits?.modelSpecific || data.weeklyLimits?.sonnetOnly;
-  const modelPct = modelData?.percentage ?? 0;
-  const modelName = modelData?.modelName || 'Model';
-
-  if (elements.modelLabel) {
-    elements.modelLabel.textContent = modelName;
-  }
-  updateStatBar(elements.modelProgress, elements.modelPercentage, modelPct);
+  // Weekly - Build model tabs and show selected model
+  const models = data.weeklyLimits?.models || [];
+  const allModelsData = data.weeklyLimits?.allModels || {};
+  buildModelTabs(models, allModelsData, data);
 
   // Weekly Reset
   if (elements.weeklyReset) {

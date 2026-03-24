@@ -801,6 +801,42 @@ body {
 }
 
 /* ============================================
+   Model Tabs
+   ============================================ */
+.model-tabs {
+  display: flex;
+  gap: 2px;
+  padding: 2px;
+  background: var(--bg-base);
+  border-radius: var(--radius-sm);
+  margin-bottom: var(--space-sm);
+}
+
+.model-tab {
+  flex: 1;
+  padding: 3px 6px;
+  background: transparent;
+  border: none;
+  border-radius: calc(var(--radius-sm) - 2px);
+  color: var(--text-muted);
+  font-size: 10px;
+  font-family: inherit;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+.model-tab:hover {
+  color: var(--text-secondary);
+}
+
+.model-tab.active {
+  background: var(--bg-surface);
+  color: var(--text-primary);
+}
+
+/* ============================================
    Settings Panel
    ============================================ */
 .settings-panel {

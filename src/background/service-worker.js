@@ -169,42 +169,30 @@ async function fetchFromOrgAPI(orgId) {
  */
 function parseOrgUsageResponse(data) {
   console.log('[ClaudeKarma] Parsing org usage:', Object.keys(data));
-  console.log('[ClaudeKarma] Full API response:', JSON.stringify(data, null, 2));
 
-  // Extract the relevant limits
   const fiveHour = data.five_hour || {};
   const sevenDay = data.seven_day || {};
 
-  // Detect which model-specific limit is available
-  // Priority: opus > sonnet > haiku > any other seven_day_* field
-  let modelLimit = null;
-  let modelName = null;
+  // Extract ALL model-specific limits dynamically
+  const modelKeys = Object.keys(data).filter(k => k.startsWith('seven_day_') && k !== 'seven_day');
+  const models = modelKeys.map(key => {
+    const raw = data[key];
+    const name = key.replace('seven_day_', '').charAt(0).toUpperCase() + key.replace('seven_day_', '').slice(1);
+    return {
+      name: name,
+      percentage: Math.min(raw.utilization || 0, 100),
+      resetTimestamp: raw.resets_at ? new Date(raw.resets_at).getTime() : null
+    };
+  });
 
-  if (data.seven_day_opus) {
-    modelLimit = data.seven_day_opus;
-    modelName = 'Opus';
-  } else if (data.seven_day_sonnet) {
-    modelLimit = data.seven_day_sonnet;
-    modelName = 'Sonnet';
-  } else if (data.seven_day_haiku) {
-    modelLimit = data.seven_day_haiku;
-    modelName = 'Haiku';
-  } else {
-    // Try to find any seven_day_* field
-    const modelKeys = Object.keys(data).filter(k => k.startsWith('seven_day_') && k !== 'seven_day');
-    if (modelKeys.length > 0) {
-      const key = modelKeys[0];
-      modelLimit = data[key];
-      // Extract model name from key (e.g., "seven_day_sonnet" -> "Sonnet")
-      modelName = key.replace('seven_day_', '').charAt(0).toUpperCase() + key.replace('seven_day_', '').slice(1);
-    }
-  }
+  // Keep backward-compatible modelSpecific (highest-priority model)
+  const priorityOrder = ['Opus', 'Sonnet', 'Haiku'];
+  const primaryModel = priorityOrder.reduce((found, name) =>
+    found || models.find(m => m.name === name), null
+  ) || models[0] || null;
 
-  // Calculate percentages (utilization is a count, we need to estimate percentage)
-  // For now, use utilization directly as percentage if < 100, otherwise cap at 100
   const sessionPct = Math.min(fiveHour.utilization || 0, 100);
   const weeklyPct = Math.min(sevenDay.utilization || 0, 100);
-  const modelPct = modelLimit ? Math.min(modelLimit.utilization || 0, 100) : 0;
 
   return {
     currentSession: {
@@ -218,15 +206,16 @@ function parseOrgUsageResponse(data) {
         resetDay: null,
         resetTime: null
       },
-      modelSpecific: {
-        percentage: modelPct,
-        resetTimestamp: modelLimit?.resets_at ? new Date(modelLimit.resets_at).getTime() : null,
+      modelSpecific: primaryModel ? {
+        percentage: primaryModel.percentage,
+        resetTimestamp: primaryModel.resetTimestamp,
         resetDay: null,
         resetTime: null,
-        modelName: modelName
-      }
+        modelName: primaryModel.name
+      } : { percentage: 0, resetTimestamp: null, resetDay: null, resetTime: null, modelName: null },
+      models: models
     },
-    _raw: data // Keep raw data for debugging
+    _raw: data
   };
 }
 
