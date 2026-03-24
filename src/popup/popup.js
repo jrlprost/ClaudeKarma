@@ -174,6 +174,7 @@ function showMainContent() {
   hideAllStates();
   elements.mainContent.classList.remove('hidden');
   displayRandomTip();
+  renderHeatmap();
 }
 
 // ============================================
@@ -686,9 +687,6 @@ function displayRandomTip() {
 // Heatmap
 // ============================================
 
-const heatmapToggle = document.getElementById('heatmap-toggle');
-const heatmapContent = document.getElementById('heatmap-content');
-const heatmapSection = document.querySelector('.heatmap-section');
 const heatmapGrid = document.getElementById('heatmap-grid');
 const heatmapHours = document.getElementById('heatmap-hours');
 const heatmapDays = document.getElementById('heatmap-days');
@@ -802,13 +800,6 @@ async function renderHeatmap() {
     heatmapGrid.appendChild(row);
   }
 }
-
-heatmapToggle?.addEventListener('click', () => {
-  heatmapSection?.classList.toggle('open');
-  if (heatmapSection?.classList.contains('open')) {
-    renderHeatmap();
-  }
-});
 
 heatmapWeekBtn?.addEventListener('click', () => {
   heatmapPeriod = 'week';
