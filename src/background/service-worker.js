@@ -308,9 +308,8 @@ async function triggerContentScript() {
         }
       }
 
-      // Navigate to usage page
-      await chrome.tabs.update(targetTab.id, { url: 'https://claude.ai/settings/usage' });
-      console.log('[ClaudeKarma] Navigated to usage page');
+      // Do NOT navigate existing tabs — this would disrupt the user's workflow
+      console.log('[ClaudeKarma] No usage tab open, skipping content script fallback');
     } else {
       console.log('[ClaudeKarma] No Claude tabs open');
     }
