@@ -233,12 +233,18 @@ body {
 }
 
 .state-subtitle {
-  color: var(--text-muted);
+  color: var(--text-primary);
   font-size: 16px;
   line-height: 1.5;
   text-align: center;
-  max-width: 240px;
+  max-width: 260px;
   margin-top: var(--space-xs);
+}
+
+.state-subtitle a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
 /* Loading */
