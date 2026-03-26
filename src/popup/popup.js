@@ -421,6 +421,14 @@ function renderUsageData(data) {
     return;
   }
 
+  // First run: data was saved but fetch never succeeded yet
+  if (!data.fetchSource && data.currentSession?.percentage === 0) {
+    showLoading();
+    // Trigger a fresh fetch and wait for update
+    chrome.runtime.sendMessage({ type: MESSAGE_TYPES.REQUEST_REFRESH });
+    return;
+  }
+
   showMainContent();
 
   // Session gauge
