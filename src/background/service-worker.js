@@ -180,8 +180,8 @@ function parseOrgUsageResponse(data) {
   const fiveHour = data.five_hour || {};
   const sevenDay = data.seven_day || {};
 
-  // Extract ALL model-specific limits dynamically
-  const modelKeys = Object.keys(data).filter(k => k.startsWith('seven_day_') && k !== 'seven_day');
+  // Extract ALL model-specific limits dynamically (skip null entries)
+  const modelKeys = Object.keys(data).filter(k => k.startsWith('seven_day_') && k !== 'seven_day' && data[k] != null);
   const models = modelKeys.map(key => {
     const raw = data[key];
     const name = key.replace('seven_day_', '').charAt(0).toUpperCase() + key.replace('seven_day_', '').slice(1);
