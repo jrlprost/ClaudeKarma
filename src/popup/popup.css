@@ -225,6 +225,15 @@ body {
   margin-top: var(--space-md);
 }
 
+.state-subtitle {
+  color: var(--text-muted);
+  font-size: 11px;
+  line-height: 1.5;
+  text-align: center;
+  max-width: 240px;
+  margin-top: var(--space-xs);
+}
+
 /* Loading */
 .loading-ring {
   width: 48px;

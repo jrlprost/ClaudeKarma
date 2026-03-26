@@ -424,8 +424,10 @@ function renderUsageData(data) {
   // First run: data was saved but fetch never succeeded yet
   if (!data.fetchSource && data.currentSession?.percentage === 0) {
     showLoading();
-    // Trigger a fresh fetch and wait for update
-    chrome.runtime.sendMessage({ type: MESSAGE_TYPES.REQUEST_REFRESH });
+    // Trigger a fresh fetch, then reload data when done
+    chrome.runtime.sendMessage({ type: MESSAGE_TYPES.REQUEST_REFRESH }, () => {
+      setTimeout(fetchData, 2000);
+    });
     return;
   }
 
