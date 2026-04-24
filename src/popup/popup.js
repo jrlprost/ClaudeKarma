@@ -785,8 +785,8 @@ async function checkTipsViewed() {
 }
 
 function handleTipsClick() {
-  // Open tips page in new tab
-  chrome.tabs.create({ url: chrome.runtime.getURL('tips/tips.html') });
+  // Open external tips hub hosted on tokenkarma.app
+  chrome.tabs.create({ url: 'https://tokenkarma.app/tips?src=ext' });
   // Hide the new dot immediately
   elements.tipsNewDot?.classList.add('hidden');
 }
