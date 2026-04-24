@@ -438,8 +438,9 @@ async function saveUsageData(data, source) {
     error: null
   };
 
-  // Fetch plan tier for snapshot context
+  // Fetch plan tier for snapshot context AND popup display
   const planTier = await fetchPlanTier();
+  mergedData.planTier = planTier;
 
   await storage.setUsageData(mergedData);
   await storage.appendUsageSnapshot(mergedData, planTier);

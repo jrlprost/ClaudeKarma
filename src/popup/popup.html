@@ -30,7 +30,7 @@
           </svg>
         </div>
         <span class="brand-name">ClaudeKarma</span>
-        <span class="brand-tagline">Usage Tracker</span>
+        <span id="plan-badge" class="plan-badge hidden">--</span>
       </div>
       <button id="refresh-btn" class="icon-btn" title="Refresh">
         <svg class="icon refresh-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -130,6 +130,25 @@
 
     <!-- Main Content -->
     <main id="main-content" class="main hidden">
+      <!-- Peak / Off-Peak banner -->
+      <div id="peak-banner" class="peak-banner hidden">
+        <div class="peak-dot"></div>
+        <div class="peak-text">
+          <strong id="peak-label">--</strong>
+          <span id="peak-description">--</span>
+        </div>
+        <div class="peak-right">
+          <span id="peak-countdown" class="peak-countdown">--</span>
+          <a href="#" id="peak-learn-more" class="peak-learn-more" title="Learn more">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M12 16v-4"/>
+              <path d="M12 8h.01"/>
+            </svg>
+          </a>
+        </div>
+      </div>
+
       <!-- Two-column layout: Gauge + Weekly Stats -->
       <div class="usage-layout">
         <!-- Left: Session Gauge -->
@@ -174,30 +193,15 @@
           </div>
         </div>
 
-        <!-- Right: Weekly Stats (single card) -->
+        <!-- Right: Weekly bars + routines (stacked) -->
         <div class="weekly-card">
-          <!-- Model tabs -->
-          <div class="model-tabs" id="model-tabs">
-            <button class="model-tab active" data-model="all">All</button>
+          <div class="bars-header">
+            <span class="bars-title" data-i18n="weeklyLimitsTitle">7-Day Limits</span>
+            <span id="weekly-reset" class="bars-reset">--</span>
           </div>
 
-          <!-- Stats content (dynamically updated) -->
-          <div class="stats-content">
-            <div class="stat-row">
-              <div class="stat-header">
-                <span id="model-label" class="stat-label">All Models</span>
-                <span id="model-percentage" class="stat-value">0%</span>
-              </div>
-              <div class="stat-bar">
-                <div id="model-progress" class="stat-fill" style="width: 0%"></div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Label and reset (like left block) -->
-          <div class="weekly-label">
-            <span class="weekly-title">7-Day Limit</span>
-            <span id="weekly-reset" class="weekly-reset">--</span>
+          <div id="bars-list" class="bars-list">
+            <!-- Dynamically rendered: one .bar-row per model + divider + routines -->
           </div>
         </div>
       </div>
