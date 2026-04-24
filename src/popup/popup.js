@@ -115,8 +115,6 @@ const elements = {
   // Tips
   tipsBtn: document.getElementById('tips-btn'),
   tipsNewDot: document.getElementById('tips-new-dot'),
-  tipText: document.getElementById('tip-text'),
-  seeMoreTips: document.getElementById('see-more-tips'),
 
   // Gauge
   gaugeProgress: document.getElementById('gauge-progress'),
@@ -296,12 +294,8 @@ function renderWeeklyBars(allModelsData, models, routines) {
     }));
   });
 
-  // Divider + routines section
+  // Routines — no divider, part of the same list
   if (routines && routines.limit > 0) {
-    const divider = document.createElement('div');
-    divider.className = 'bar-divider';
-    elements.barsList.appendChild(divider);
-
     const routinesPct = Math.min(100, (routines.used / routines.limit) * 100);
     elements.barsList.appendChild(createBarRow({
       label: 'Daily routines',
@@ -802,10 +796,8 @@ function handleTipsClick() {
 // ============================================
 
 function displayRandomTip() {
-  if (elements.tipText) {
-    const randomIndex = Math.floor(Math.random() * QUICK_TIPS.length);
-    elements.tipText.textContent = QUICK_TIPS[randomIndex];
-  }
+  // Random tip box was removed in v1.2 — replaced by Tips CTA button.
+  // Kept as a no-op to avoid breaking call sites.
 }
 
 // ============================================
@@ -950,7 +942,6 @@ elements.saveOrgBtn?.addEventListener('click', handleSaveOrgId);
 elements.settingsBtn?.addEventListener('click', openSettings);
 elements.settingsBack?.addEventListener('click', closeSettings);
 elements.tipsBtn?.addEventListener('click', handleTipsClick);
-elements.seeMoreTips?.addEventListener('click', handleTipsClick);
 elements.clearHistoryBtn?.addEventListener('click', handleClearHistory);
 elements.resetSetupBtn?.addEventListener('click', handleResetSetup);
 

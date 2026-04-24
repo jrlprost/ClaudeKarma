@@ -226,39 +226,25 @@
         </div>
       </div>
 
-      <!-- Random Tip -->
-      <div id="random-tip" class="random-tip">
-        <div class="tip-header">
-          <svg class="tip-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M9 18h6"/>
-            <path d="M10 22h4"/>
-            <path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"/>
-          </svg>
-          <span class="tip-label">Quick Tip</span>
-        </div>
-        <p id="tip-text" class="tip-content">--</p>
-        <button id="see-more-tips" class="see-more-link">
-          <span>See more tips</span>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="5" y1="12" x2="19" y2="12"/>
-            <polyline points="12 5 19 12 12 19"/>
-          </svg>
-        </button>
-      </div>
     </main>
 
     <!-- Footer -->
     <footer class="footer">
-      <span id="last-updated" class="footer-text">Last updated: --</span>
+      <button id="tips-btn" class="tips-cta" title="Tips & Tricks">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 18h6"/>
+          <path d="M10 22h4"/>
+          <path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"/>
+        </svg>
+        <span>Save tokens — see tips</span>
+        <svg class="tips-cta-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="5" y1="12" x2="19" y2="12"/>
+          <polyline points="12 5 19 12 12 19"/>
+        </svg>
+        <span id="tips-new-dot" class="new-dot"></span>
+      </button>
       <div class="footer-actions">
-        <button id="tips-btn" class="icon-btn icon-btn-sm tips-btn" title="Tips & Tricks">
-          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M9 18h6"/>
-            <path d="M10 22h4"/>
-            <path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"/>
-          </svg>
-          <span id="tips-new-dot" class="new-dot"></span>
-        </button>
+        <span id="last-updated" class="footer-text">--</span>
         <button id="settings-btn" class="icon-btn icon-btn-sm" title="Settings">
         <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="12" cy="12" r="3"/>
