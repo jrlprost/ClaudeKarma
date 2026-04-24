@@ -341,8 +341,8 @@ function createBarRow({ label, percentage, subtitle, valueText }) {
   const track = document.createElement('div');
   track.className = 'bar-track';
   const fill = document.createElement('div');
-  fill.className = isEmpty ? 'bar-fill empty' : `bar-fill ${getColorClass(pct)}`;
-  fill.style.width = isEmpty ? '100%' : `${pct}%`;
+  fill.className = `bar-fill ${getColorClass(pct)}`;
+  fill.style.width = `${pct}%`;
   track.appendChild(fill);
 
   row.appendChild(header);
@@ -494,7 +494,7 @@ function formatDelta(ms) {
   const totalMin = Math.max(0, Math.floor(ms / 60000));
   const h = Math.floor(totalMin / 60);
   const m = totalMin % 60;
-  if (h > 24) {
+  if (h >= 24) {
     const d = Math.floor(h / 24);
     const rem = h % 24;
     return rem > 0 ? `${d}d ${rem}h` : `${d}d`;
@@ -976,6 +976,8 @@ chrome.runtime.onMessage.addListener((message) => {
 
 function startCountdownTimer() {
   countdownInterval = setInterval(() => {
+    // Refresh peak banner countdown independently of fetch success
+    updatePeakBanner();
     fetchData();
   }, 60000);
 }
