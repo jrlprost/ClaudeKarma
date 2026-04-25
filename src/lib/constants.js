@@ -91,8 +91,10 @@ export const DEFAULT_USAGE_DATA = {
       resetDay: null,
       resetTime: null,
       modelName: null
-    }
+    },
+    models: []
   },
+  routines: null,
   lastFetchedAt: null,
   fetchSource: null
 };

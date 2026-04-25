@@ -152,6 +152,13 @@ async function fetchFromOrgAPI(orgId) {
     console.log('[ClaudeKarma] API response:', data);
 
     const usageData = parseOrgUsageResponse(data);
+
+    // Fetch routines budget in parallel (don't block on failure)
+    const routines = await fetchRoutinesBudget(orgId);
+    if (routines) {
+      usageData.routines = routines;
+    }
+
     await saveUsageData(usageData, 'api');
     return true;
 
@@ -166,12 +173,62 @@ async function fetchFromOrgAPI(orgId) {
 }
 
 /**
+ * Fetch daily routines budget (0 / 15 on Max plans).
+ * Endpoint: https://claude.ai/v1/code/routines/run-budget
+ * Returns { used, limit } or null on failure.
+ */
+async function fetchRoutinesBudget(orgId) {
+  try {
+    const response = await fetch('https://claude.ai/v1/code/routines/run-budget', {
+      credentials: 'include',
+      headers: {
+        'Accept': '*/*',
+        'anthropic-version': '2023-06-01',
+        'anthropic-beta': 'ccr-triggers-2026-01-30',
+        'anthropic-client-platform': 'web_claude_ai',
+        'x-organization-uuid': orgId
+      }
+    });
+
+    if (!response.ok) {
+      console.log('[ClaudeKarma] Routines budget not available:', response.status);
+      return null;
+    }
+
+    const data = await response.json();
+    return {
+      used: parseInt(data.used, 10) || 0,
+      limit: parseInt(data.limit, 10) || 0
+    };
+  } catch (error) {
+    console.warn('[ClaudeKarma] Routines fetch failed:', error.message);
+    return null;
+  }
+}
+
+/**
+ * Map internal Anthropic codenames to user-facing names.
+ * null = hide this model in the UI (internal/experimental).
+ */
+const MODEL_DISPLAY_NAMES = {
+  'opus': 'Opus',
+  'sonnet': 'Sonnet',
+  'haiku': 'Haiku',
+  'omelette': 'Claude Design',
+  'cowork': 'Cowork',
+  'oauth_apps': null,
+  'iguana_necktie': null,
+  'omelette_promotional': null
+};
+
+/**
  * Parse the organization usage API response
  * Format: { five_hour: { utilization, resets_at }, seven_day: {...}, ... }
  *
  * The API may return different model-specific limits based on subscription:
  * - seven_day_opus: Opus usage limit
  * - seven_day_sonnet: Sonnet usage limit
+ * - seven_day_omelette: Claude Design usage limit (codename)
  * - etc.
  */
 function parseOrgUsageResponse(data) {
@@ -180,17 +237,26 @@ function parseOrgUsageResponse(data) {
   const fiveHour = data.five_hour || {};
   const sevenDay = data.seven_day || {};
 
-  // Extract ALL model-specific limits dynamically (skip null entries)
+  // Extract ALL model-specific limits dynamically (skip null entries and hidden codenames)
   const modelKeys = Object.keys(data).filter(k => k.startsWith('seven_day_') && k !== 'seven_day' && data[k] != null);
   const models = modelKeys.map(key => {
     const raw = data[key];
-    const name = key.replace('seven_day_', '').charAt(0).toUpperCase() + key.replace('seven_day_', '').slice(1);
+    const codename = key.replace('seven_day_', '');
+
+    // Map codename to display name; null = hide this entry
+    const displayName = MODEL_DISPLAY_NAMES.hasOwnProperty(codename)
+      ? MODEL_DISPLAY_NAMES[codename]
+      : codename.charAt(0).toUpperCase() + codename.slice(1);
+
+    if (displayName === null) return null;
+
     return {
-      name: name,
+      codename: codename,
+      name: displayName,
       percentage: Math.min(raw.utilization || 0, 100),
       resetTimestamp: raw.resets_at ? new Date(raw.resets_at).getTime() : null
     };
-  });
+  }).filter(m => m !== null);
 
   // Keep backward-compatible modelSpecific (highest-priority model)
   const priorityOrder = ['Opus', 'Sonnet', 'Haiku'];
@@ -222,6 +288,7 @@ function parseOrgUsageResponse(data) {
       } : { percentage: 0, resetTimestamp: null, resetDay: null, resetTime: null, modelName: null },
       models: models
     },
+    routines: null,
     _raw: data
   };
 }
@@ -371,8 +438,9 @@ async function saveUsageData(data, source) {
     error: null
   };
 
-  // Fetch plan tier for snapshot context
+  // Fetch plan tier for snapshot context AND popup display
   const planTier = await fetchPlanTier();
+  mergedData.planTier = planTier;
 
   await storage.setUsageData(mergedData);
   await storage.appendUsageSnapshot(mergedData, planTier);

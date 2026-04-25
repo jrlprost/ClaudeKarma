@@ -5,6 +5,8 @@
  * Features a circular gauge for session limit and stat cards for weekly limits.
  */
 
+import { getCurrentPeakState } from '../lib/peak-schedule.js';
+
 // Message types
 const MESSAGE_TYPES = {
   GET_USAGE_DATA: 'getUsageData',
@@ -113,8 +115,6 @@ const elements = {
   // Tips
   tipsBtn: document.getElementById('tips-btn'),
   tipsNewDot: document.getElementById('tips-new-dot'),
-  tipText: document.getElementById('tip-text'),
-  seeMoreTips: document.getElementById('see-more-tips'),
 
   // Gauge
   gaugeProgress: document.getElementById('gauge-progress'),
@@ -123,12 +123,19 @@ const elements = {
   sessionPercentage: document.getElementById('session-percentage'),
   sessionReset: document.getElementById('session-reset'),
 
-  // Weekly Stats
-  modelTabs: document.getElementById('model-tabs'),
-  modelLabel: document.getElementById('model-label'),
-  modelProgress: document.getElementById('model-progress'),
-  modelPercentage: document.getElementById('model-percentage'),
+  // Weekly Stats (v1.2)
+  barsList: document.getElementById('bars-list'),
   weeklyReset: document.getElementById('weekly-reset'),
+
+  // Plan badge
+  planBadge: document.getElementById('plan-badge'),
+
+  // Peak banner
+  peakBanner: document.getElementById('peak-banner'),
+  peakLabel: document.getElementById('peak-label'),
+  peakDescription: document.getElementById('peak-description'),
+  peakCountdown: document.getElementById('peak-countdown'),
+  peakLearnMore: document.getElementById('peak-learn-more'),
 
   // Footer
   lastUpdated: document.getElementById('last-updated')
@@ -242,94 +249,128 @@ function updateStatBar(progressEl, percentageEl, percentage) {
   }
 }
 
-// Current selected model for tab state
-let currentModelTab = 'all';
+/**
+ * Render the stacked bar list: All models, per-model breakdown, routines.
+ * Replaces the old tab-based UI with a unified vertical stack.
+ */
+function renderWeeklyBars(allModelsData, models, routines) {
+  if (!elements.barsList) return;
+
+  // Clear existing bars
+  while (elements.barsList.firstChild) {
+    elements.barsList.removeChild(elements.barsList.firstChild);
+  }
+
+  // Update top-right reset info (once for all weekly bars)
+  if (elements.weeklyReset) {
+    const resetTs = allModelsData?.resetTimestamp;
+    elements.weeklyReset.textContent = resetTs
+      ? `Resets ${formatResetDay(resetTs)}`
+      : '--';
+  }
+
+  // Row 1: All models (overall weekly)
+  elements.barsList.appendChild(createBarRow({
+    label: 'All models',
+    percentage: allModelsData?.percentage ?? 0
+  }));
+
+  // Rows: per-model breakdown (skip if all zero to avoid clutter?)
+  // We render all of them in consistent order: Opus, Sonnet, Haiku, Claude Design, others
+  const priorityOrder = ['Opus', 'Sonnet', 'Haiku', 'Claude Design'];
+  const sortedModels = [...(models || [])].sort((a, b) => {
+    const ai = priorityOrder.indexOf(a.name);
+    const bi = priorityOrder.indexOf(b.name);
+    const aIdx = ai === -1 ? 999 : ai;
+    const bIdx = bi === -1 ? 999 : bi;
+    return aIdx - bIdx;
+  });
+
+  sortedModels.forEach(model => {
+    elements.barsList.appendChild(createBarRow({
+      label: model.name,
+      percentage: model.percentage,
+      subtitle: model.percentage === 0 ? 'not used yet' : null
+    }));
+  });
+
+  // Routines — no divider, part of the same list
+  if (routines && routines.limit > 0) {
+    const routinesPct = Math.min(100, (routines.used / routines.limit) * 100);
+    elements.barsList.appendChild(createBarRow({
+      label: 'Daily routines',
+      percentage: routinesPct,
+      valueText: `${routines.used} / ${routines.limit}`
+    }));
+  }
+}
 
 /**
- * Build model tabs and display selected model data
+ * Create a single bar row DOM node.
  */
-function buildModelTabs(models, allModelsData, fullData) {
-  if (!elements.modelTabs) return;
+function createBarRow({ label, percentage, subtitle, valueText }) {
+  const pct = Math.max(0, Math.min(100, percentage));
+  const isEmpty = pct === 0;
 
-  // Clear existing tabs safely
-  while (elements.modelTabs.firstChild) {
-    elements.modelTabs.removeChild(elements.modelTabs.firstChild);
+  const row = document.createElement('div');
+  row.className = 'bar-row';
+
+  const header = document.createElement('div');
+  header.className = 'bar-row-header';
+
+  const labelWrap = document.createElement('div');
+  const labelEl = document.createElement('span');
+  labelEl.className = 'bar-label';
+  labelEl.textContent = label;
+  labelWrap.appendChild(labelEl);
+
+  if (subtitle) {
+    const subEl = document.createElement('span');
+    subEl.className = 'bar-subtitle';
+    subEl.textContent = `· ${subtitle}`;
+    labelWrap.appendChild(subEl);
   }
 
-  const allTab = document.createElement('button');
-  allTab.className = 'model-tab' + (currentModelTab === 'all' ? ' active' : '');
-  allTab.dataset.model = 'all';
-  allTab.textContent = 'All';
-  allTab.addEventListener('click', () => selectModelTab('all', models, allModelsData, fullData));
-  elements.modelTabs.appendChild(allTab);
+  const valueEl = document.createElement('span');
+  valueEl.className = 'bar-value';
+  valueEl.textContent = valueText || `${Math.round(pct)}%`;
 
-  models.forEach(model => {
-    const tab = document.createElement('button');
-    tab.className = 'model-tab' + (currentModelTab === model.name ? ' active' : '');
-    tab.dataset.model = model.name;
-    tab.textContent = model.name;
-    tab.addEventListener('click', () => selectModelTab(model.name, models, allModelsData, fullData));
-    elements.modelTabs.appendChild(tab);
-  });
+  header.appendChild(labelWrap);
+  header.appendChild(valueEl);
 
-  // If no models detected, fall back to legacy modelSpecific
-  if (models.length === 0) {
-    const legacy = fullData.weeklyLimits?.modelSpecific || fullData.weeklyLimits?.sonnetOnly;
-    if (legacy?.modelName) {
-      const tab = document.createElement('button');
-      tab.className = 'model-tab';
-      tab.dataset.model = legacy.modelName;
-      tab.textContent = legacy.modelName;
-      tab.addEventListener('click', () => {
-        currentModelTab = legacy.modelName;
-        updateModelDisplay(legacy.modelName, legacy.percentage, legacy.resetTimestamp);
-        updateTabActiveState();
-      });
-      elements.modelTabs.appendChild(tab);
-    }
-  }
+  const track = document.createElement('div');
+  track.className = 'bar-track';
+  const fill = document.createElement('div');
+  fill.className = `bar-fill ${getColorClass(pct)}`;
+  fill.style.width = `${pct}%`;
+  track.appendChild(fill);
 
-  // Display current selection
-  selectModelTab(currentModelTab, models, allModelsData, fullData);
+  row.appendChild(header);
+  row.appendChild(track);
+  return row;
 }
 
-function selectModelTab(modelName, models, allModelsData, fullData) {
-  currentModelTab = modelName;
-
-  if (modelName === 'all') {
-    let pct = allModelsData?.percentage ?? 0;
-    let resetTs = allModelsData?.resetTimestamp;
-    // If allModels is 0 but individual models have data, use the max
-    if (pct === 0 && models.length > 0) {
-      const maxModel = models.reduce((a, b) => a.percentage > b.percentage ? a : b);
-      pct = maxModel.percentage;
-      resetTs = resetTs || maxModel.resetTimestamp;
-    }
-    updateModelDisplay('All Models', pct, resetTs);
-  } else {
-    const model = models.find(m => m.name === modelName);
-    if (model) {
-      updateModelDisplay(model.name, model.percentage, model.resetTimestamp);
-    }
-  }
-
-  updateTabActiveState();
+/**
+ * Map percentage to color bucket (low / medium / high / critical).
+ */
+function getColorClass(pct) {
+  if (pct < 50) return 'low';
+  if (pct < 70) return 'medium';
+  if (pct < 90) return 'high';
+  return 'critical';
 }
 
-function updateModelDisplay(label, percentage, resetTimestamp) {
-  if (elements.modelLabel) elements.modelLabel.textContent = label;
-  updateStatBar(elements.modelProgress, elements.modelPercentage, percentage);
-  if (elements.weeklyReset && resetTimestamp) {
-    elements.weeklyReset.textContent = formatCountdown(resetTimestamp)
-      ? `Resets in ${formatCountdown(resetTimestamp)}` : '--';
-  }
-}
-
-function updateTabActiveState() {
-  if (!elements.modelTabs) return;
-  elements.modelTabs.querySelectorAll('.model-tab').forEach(tab => {
-    tab.classList.toggle('active', tab.dataset.model === currentModelTab);
-  });
+/**
+ * Format a reset timestamp as a short weekday+time string.
+ * E.g. "Sun 05:00" or "in 2d 4h" depending on distance.
+ */
+function formatResetDay(timestamp) {
+  if (!timestamp) return '--';
+  const date = new Date(timestamp);
+  const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const hh = String(date.getHours()).padStart(2, '0');
+  const mm = String(date.getMinutes()).padStart(2, '0');
+  return `${days[date.getDay()]} ${hh}:${mm}`;
 }
 
 // ============================================
@@ -396,6 +437,73 @@ function formatTimeAgo(timestamp) {
 }
 
 // ============================================
+// Plan Badge
+// ============================================
+
+const PLAN_DISPLAY = {
+  'default_claude_free': 'Free',
+  'default_claude_pro': 'Pro',
+  'default_claude_max': 'Max 5x',
+  'default_claude_max_20x': 'Max 20x',
+  'default_claude_team': 'Team',
+  'default_claude_enterprise': 'Enterprise'
+};
+
+function updatePlanBadge(planTier) {
+  if (!elements.planBadge) return;
+  const display = PLAN_DISPLAY[planTier];
+  if (display) {
+    elements.planBadge.textContent = display;
+    elements.planBadge.classList.remove('hidden');
+  } else {
+    elements.planBadge.classList.add('hidden');
+  }
+}
+
+// ============================================
+// Peak / Off-Peak Banner
+// ============================================
+
+function updatePeakBanner() {
+  const banner = elements.peakBanner;
+  if (!banner) return;
+
+  try {
+    const now = new Date();
+    const { state, nextChangeAt } = getCurrentPeakState(now);
+
+    banner.classList.remove('hidden');
+    banner.classList.toggle('peak', state === 'peak');
+
+    if (state === 'peak') {
+      elements.peakLabel.textContent = 'Peak hours';
+      elements.peakDescription.textContent = '— session drains 3-5x faster';
+      elements.peakCountdown.textContent = `Off-peak in ${formatDelta(nextChangeAt - now)}`;
+    } else {
+      elements.peakLabel.textContent = 'Off-peak hours';
+      elements.peakDescription.textContent = '— standard rate';
+      elements.peakCountdown.textContent = `Peak in ${formatDelta(nextChangeAt - now)}`;
+    }
+  } catch (e) {
+    console.warn('[ClaudeKarma] Peak banner update failed:', e.message);
+    banner.classList.add('hidden');
+  }
+}
+
+function formatDelta(ms) {
+  const totalMin = Math.max(0, Math.floor(ms / 60000));
+  const h = Math.floor(totalMin / 60);
+  const m = totalMin % 60;
+  if (h >= 24) {
+    const d = Math.floor(h / 24);
+    const rem = h % 24;
+    return rem > 0 ? `${d}d ${rem}h` : `${d}d`;
+  }
+  if (h === 0) return `${m}m`;
+  return m > 0 ? `${h}h ${m}m` : `${h}h`;
+}
+
+// ============================================
 // Data Rendering
 // ============================================
 
@@ -457,12 +565,13 @@ function renderUsageData(data) {
     }
   }
 
-  buildModelTabs(models, allModelsData, data);
+  renderWeeklyBars(allModelsData, models, data.routines);
 
-  // Weekly Reset
-  if (elements.weeklyReset) {
-    elements.weeklyReset.textContent = formatResetInfo(data.weeklyLimits?.allModels);
-  }
+  // Update plan badge (if available on data)
+  updatePlanBadge(data.planTier);
+
+  // Update peak/off-peak banner
+  updatePeakBanner();
 
   // Last Updated
   if (elements.lastUpdated) {
@@ -676,8 +785,8 @@ async function checkTipsViewed() {
 }
 
 function handleTipsClick() {
-  // Open tips page in new tab
-  chrome.tabs.create({ url: chrome.runtime.getURL('tips/tips.html') });
+  // Open external tips hub hosted on tokenkarma.app
+  chrome.tabs.create({ url: 'https://tokenkarma.app/tips?src=ext' });
   // Hide the new dot immediately
   elements.tipsNewDot?.classList.add('hidden');
 }
@@ -687,10 +796,8 @@ function handleTipsClick() {
 // ============================================
 
 function displayRandomTip() {
-  if (elements.tipText) {
-    const randomIndex = Math.floor(Math.random() * QUICK_TIPS.length);
-    elements.tipText.textContent = QUICK_TIPS[randomIndex];
-  }
+  // Random tip box was removed in v1.2 — replaced by Tips CTA button.
+  // Kept as a no-op to avoid breaking call sites.
 }
 
 // ============================================
@@ -835,7 +942,6 @@ elements.saveOrgBtn?.addEventListener('click', handleSaveOrgId);
 elements.settingsBtn?.addEventListener('click', openSettings);
 elements.settingsBack?.addEventListener('click', closeSettings);
 elements.tipsBtn?.addEventListener('click', handleTipsClick);
-elements.seeMoreTips?.addEventListener('click', handleTipsClick);
 elements.clearHistoryBtn?.addEventListener('click', handleClearHistory);
 elements.resetSetupBtn?.addEventListener('click', handleResetSetup);
 
@@ -870,6 +976,8 @@ chrome.runtime.onMessage.addListener((message) => {
 
 function startCountdownTimer() {
   countdownInterval = setInterval(() => {
+    // Refresh peak banner countdown independently of fetch success
+    updatePeakBanner();
     fetchData();
   }, 60000);
 }

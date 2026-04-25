@@ -32,3 +32,4 @@ dev/
 
 # Claude settings (don't sync to GitHub)
 .claude/
+claudekarma-v1.1.2/
