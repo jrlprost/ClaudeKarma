@@ -902,10 +902,32 @@ async function renderHeatmap() {
       const timeStr = `${String(b).padStart(2, '0')}:00`;
 
       cell.addEventListener('mouseenter', (e) => {
-        heatmapTooltip.textContent = `${dateStr} ${timeStr} — ${pct}%`;
+        heatmapTooltip.textContent = `${dateStr} ${timeStr} · ${pct}%`;
         heatmapTooltip.classList.add('visible');
-        heatmapTooltip.style.left = `${e.clientX + 8}px`;
-        heatmapTooltip.style.top = `${e.clientY - 28}px`;
+        // Show first to measure, then position with edge detection
+        heatmapTooltip.style.visibility = 'hidden';
+        heatmapTooltip.style.left = '0px';
+        heatmapTooltip.style.top = '0px';
+        const ttRect = heatmapTooltip.getBoundingClientRect();
+        const ttW = ttRect.width;
+        const ttH = ttRect.height;
+        const popupW = document.documentElement.clientWidth;
+        const popupH = document.documentElement.clientHeight;
+        const margin = 8;
+        // Default: right of cursor
+        let left = e.clientX + margin;
+        let top = e.clientY - ttH - margin;
+        // If overflowing right edge, flip to left of cursor
+        if (left + ttW + margin > popupW) {
+          left = e.clientX - ttW - margin;
+        }
+        // Clamp to popup bounds
+        if (left < margin) left = margin;
+        if (top < margin) top = e.clientY + margin;
+        if (top + ttH + margin > popupH) top = popupH - ttH - margin;
+        heatmapTooltip.style.left = `${left}px`;
+        heatmapTooltip.style.top = `${top}px`;
+        heatmapTooltip.style.visibility = '';
       });
       cell.addEventListener('mouseleave', () => {
         heatmapTooltip.classList.remove('visible');
