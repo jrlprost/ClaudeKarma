@@ -23,7 +23,7 @@ Companion site: [tokenkarma.app/tips](https://tokenkarma.app/tips) — a free pl
 
 ### Chrome Web Store
 
-[Add to Chrome](https://chrome.google.com/webstore/detail/claudekarma) (search for "ClaudeKarma")
+[Add to Chrome](https://chromewebstore.google.com/detail/claudekarma-%E2%80%94-claude-usag/hoffoefgnaakaafdfjpnjdkclhjkebjn)
 
 ### Manual Install (Chrome / Edge / Brave / Opera)
 
