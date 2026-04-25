@@ -1,23 +1,29 @@
-# ClaudeKarma — Claude Usage Tracker
+# ClaudeKarma · Claude Usage Tracker
 
-Track your Claude AI usage limits directly from the browser toolbar. Monitor 5-hour session and 7-day quotas with real-time progress rings. Never hit the limit unexpectedly again.
+Track your Claude AI usage limits directly from the browser toolbar. Monitor 5-hour session and 7-day quotas with real-time bars and a circular gauge. Know when peak hours drain your limits faster. Never hit the limit unexpectedly again.
+
+Companion site: [tokenkarma.app/tips](https://tokenkarma.app/tips) — a free playbook to save tokens and stretch your limits.
 
 ## Features
 
-- **Dual Progress Rings** — See both session (5-hour) and weekly (7-day) limits at a glance
-- **Color-Coded Status** — Green, yellow, orange, and red indicators show usage levels
-- **Real-Time Updates** — Automatically refreshes every 5 minutes
-- **Visual Warnings** — Animated rotating icon when approaching limits (70%+)
-- **Tips & Tricks** — 40+ built-in prompting tips to use Claude more effectively
-- **Auto-Detect** — Automatically finds your Claude organization, no setup needed
-- **Premium Dark Theme** — Beautiful, native-feeling interface
-- **Privacy First** — All data stays on your device. No tracking, no analytics.
+- **Live Session Gauge**: 5-hour limit shown as a circular gauge, color-coded by usage
+- **Per-Model Breakdown**: stacked bars for All models, Sonnet, Opus, Haiku, and Claude Design
+- **Daily Routines Tracker**: monitor scheduled Claude Code routines on Max plans (X / 15 daily)
+- **Peak Hour Alerts**: a banner shows when Claude session limits drain 3 to 5x faster (weekdays 5 to 11 AM PT)
+- **Plan Badge**: see your tier at a glance (Pro, Max 5x, Max 20x)
+- **Activity Heatmap**: hourly grid showing when you use Claude most (week or month view)
+- **Smart Notifications**: browser alerts at configurable thresholds (default 90% and 100%)
+- **Settings Panel**: refresh interval, notification thresholds, data management
+- **Color-Coded Status**: green, yellow, orange, red indicators
+- **Dynamic Toolbar Icon**: dual concentric rings, blinks at 90% and above
+- **Premium Dark Theme**: native-feeling interface
+- **Privacy First**: all extension data stays on your device, no third-party tracking inside the extension
 
 ## Installation
 
 ### Chrome Web Store
 
-Coming soon.
+[Add to Chrome](https://chrome.google.com/webstore/detail/claudekarma) (search for "ClaudeKarma")
 
 ### Manual Install (Chrome / Edge / Brave / Opera)
 
@@ -36,9 +42,9 @@ Coming soon.
 
 ## Usage
 
-1. **Log in to Claude.ai** — The extension needs your active session
-2. **Click the extension icon** — View your detailed usage stats
-3. **Pin it to your toolbar** — The icon color shows your usage level at a glance
+1. **Log in to Claude.ai**: the extension uses your active session
+2. **Click the extension icon**: see your detailed usage stats
+3. **Pin it to your toolbar**: the icon color shows your usage level at a glance
 
 ## Toolbar Icon
 
@@ -46,17 +52,28 @@ The toolbar icon shows two concentric rings:
 
 | Ring | Tracks |
 |------|--------|
-| **Outer ring** | 7-day weekly limit (all models) |
-| **Inner ring** | 5-hour session limit |
+| **Outer ring** | 5-hour session limit |
+| **Inner ring** | 7-day weekly limit (all models) |
 
 | Usage Level | Color | Meaning |
 |-------------|-------|---------|
-| 0–50% | Green | Plenty of usage remaining |
-| 50–70% | Yellow | Moderate usage |
-| 70–90% | Orange | Getting close to limit |
-| 90–100% | Red | Near or at limit |
+| 0 to 50% | Green | Plenty of usage remaining |
+| 50 to 70% | Yellow | Moderate usage |
+| 70 to 90% | Orange | Getting close to limit |
+| 90 to 100% | Red | Near or at limit |
 
-At 70%+, the icon animates (rotating rings) to grab your attention.
+At 90% and above, the icon blinks to grab your attention.
+
+## Peak Hours
+
+Claude session limits drain noticeably faster during peak business hours. Source: [Anthropic support](https://support.claude.com/en/articles/14063676).
+
+| Time (UTC) | Days | State |
+|------------|------|-------|
+| 13:00 to 19:00 UTC (5 to 11 AM PT) | Monday to Friday | Peak (drain 3 to 5x faster) |
+| All other times | Weekdays + weekends | Off-peak (standard rate) |
+
+The popup banner shows a live indicator and a countdown to the next state change. Weekly limits are not affected, only the 5-hour session.
 
 ## Project Structure
 
@@ -64,39 +81,72 @@ At 70%+, the icon animates (rotating rings) to grab your attention.
 src/
 ├── manifest.json              # Extension manifest (MV3)
 ├── background/
-│   └── service-worker.js      # Central orchestrator
+│   └── service-worker.js      # API fetching, codename mapping, alarms
 ├── content/
-│   └── content.js             # Fallback DOM scraping
+│   └── content.js             # Fallback DOM scraping (rare)
 ├── popup/
-│   ├── popup.html             # Popup structure
+│   ├── popup.html             # 2-column layout: gauge + bars
 │   ├── popup.css              # Dark theme styles
-│   └── popup.js               # Popup logic & tips
+│   └── popup.js               # Render logic, peak banner, plan badge
 ├── tips/
-│   ├── tips.html              # Tips & Tricks page
+│   ├── tips.html              # Internal tips page (legacy, redirects to tokenkarma.app)
 │   ├── tips.css
 │   └── tips.js
+├── update/
+│   ├── update.html            # "What's New" changelog page
+│   ├── update.css
+│   └── update.js
 ├── welcome/
-│   ├── welcome.html           # Welcome & pin instructions
+│   ├── welcome.html           # First-run welcome with pin instructions
 │   ├── welcome.css
 │   └── welcome.js
 ├── lib/
 │   ├── constants.js           # Colors, thresholds, config
-│   ├── storage.js             # Storage abstraction
-│   └── icon-renderer.js       # Dynamic icon with OffscreenCanvas
+│   ├── storage.js             # Storage abstraction (cross-browser)
+│   ├── icon-renderer.js       # Dynamic icon with OffscreenCanvas
+│   └── peak-schedule.js       # Hardcoded peak/off-peak windows (v1.2.1 will fetch)
 ├── icons/
 │   └── icon-{16,32,48,128}.png
 ├── _locales/
-│   └── en/messages.json
+│   └── {en,fr,de,es,it,ja,ko,nl,pt_BR}/messages.json
 └── browser-polyfill.min.js    # Cross-browser support
+```
+
+## Architecture
+
+```
+                ┌─────────────────────────────┐
+                │  SERVICE WORKER             │
+                │  fetchUsageData() / alarms  │
+                └──────────┬──────────────────┘
+                           │
+        ┌──────────────────┼──────────────────┐
+        ▼                  ▼                  ▼
+  /api/.../usage   /v1/code/routines   /api/.../rate_limits
+  (5h, 7-day,      (Max plans only)    (plan tier)
+  per-model)
+                           │
+                           ▼
+                ┌─────────────────────────────┐
+                │  chrome.storage.local       │
+                │  usageData snapshot         │
+                └──────────┬──────────────────┘
+                           │
+            ┌──────────────┼──────────────┐
+            ▼              ▼              ▼
+        Toolbar icon   Popup UI    Update / welcome
+        (refreshIcon)  (popup.js)  pages
 ```
 
 ## Privacy
 
-- All data stored locally in your browser
-- No data sent to third-party servers
-- Uses your existing Claude.ai session (no passwords stored)
-- Minimal permissions requested
-- Open source — full code transparency
+- All extension data stored locally in your browser
+- No data sent to third-party servers from the extension
+- Uses your existing Claude.ai session (no passwords stored, ever)
+- Minimal permissions requested (see below)
+- Open source: full code transparency
+
+The companion website at [tokenkarma.app](https://tokenkarma.app) uses Cloudflare Web Analytics, which is cookieless, GDPR-friendly, and does not track individual visitors.
 
 Full privacy policy: [PRIVACY.md](https://github.com/jrlprost/ClaudeKarma/blob/main/PRIVACY.md)
 
@@ -105,62 +155,64 @@ Full privacy policy: [PRIVACY.md](https://github.com/jrlprost/ClaudeKarma/blob/m
 | Permission | Reason |
 |------------|--------|
 | `storage` | Store cached usage data locally |
-| `alarms` | Schedule periodic data refresh (every 5 minutes) |
-| `offscreen` | Generate dynamic toolbar icons |
+| `alarms` | Schedule periodic data refresh (default 5 minutes) |
+| `notifications` | Optional alerts at configured thresholds (90%, 100%) |
+| `offscreen` | Generate dynamic toolbar icons (Chrome) |
 | `host_permissions: claude.ai` | Fetch usage data from Claude's API |
 
 ## Roadmap
 
-### v1.0 — Initial Release (Current)
+### v1.0 (shipped)
 
-- [x] Dual progress rings (5-hour session + 7-day weekly)
-- [x] Dynamic toolbar icon with color-coded status
-- [x] Rotating animation warning at 70%+ usage
-- [x] Auto-detect organization ID
-- [x] Tips & Tricks page with prompting best practices
-- [x] Random tip display in popup
-- [x] Premium dark theme UI
-- [x] Welcome page with pin instructions
+- Dual progress rings (5-hour session + 7-day weekly)
+- Dynamic toolbar icon with color-coded status
+- Auto-detect organization ID
+- Premium dark theme UI
+- Welcome page with pin instructions
 
-### v1.1 — Notifications & Badges
+### v1.1 (shipped)
 
-- [ ] Desktop notifications at configurable thresholds (70%, 90%, 100%)
-- [ ] Badge text on toolbar icon showing percentage
-- [ ] Sound alerts (optional, with mute)
-- [ ] "Do not disturb" quiet hours setting
+- Activity heatmap (GitHub-style hourly grid)
+- Per-model usage tabs (Opus, Sonnet, Haiku)
+- Browser notifications at usage thresholds
+- Settings panel with refresh interval and threshold customization
+- i18n in 9 languages
+- Plan-aware data logging
 
-### v1.2 — Usage Insights
+### v1.2 (current)
 
-- [ ] Usage history graph (daily/weekly trends)
-- [ ] Calendar heatmap (GitHub-style activity view)
-- [ ] Usage predictions ("At this rate, limit in ~2h")
-- [ ] Peak usage hours analysis
-- [ ] Export data (CSV/JSON)
+- Redesigned popup with stacked bars for every weekly limit
+- Claude Design tracking (Anthropic codename: omelette)
+- Daily Routines tracker for Max plans
+- Peak / off-peak hour banner with verified Anthropic schedule
+- Plan tier badge in popup header
+- Big "Save tokens" CTA leading to [tokenkarma.app/tips](https://tokenkarma.app/tips)
+- Welcome page refreshed with peak-hour explanation
+- Hotfixes: tab navigation bug, null model crash, first-run UX
 
-### v1.3 — Customization
+### v1.2.1 (next)
 
-- [ ] Light theme option
-- [ ] Custom accent colors
-- [ ] Configurable refresh intervals
-- [ ] Keyboard shortcut to open popup
+- Peak schedule fetched from `api.tokenkarma.app/peak-schedule.json` instead of hardcoded
+- 40 individual tip pages on tokenkarma.app
+- Possible Claude Code billing / extra usage tracking (when API exposes it)
 
-### v1.4 — Multi-Account & Sync
+### v1.3 (planned)
 
-- [ ] Multiple Claude account support
-- [ ] Sync settings across devices (Chrome sync)
+- Light theme option
+- Keyboard shortcut to open popup
+- Usage budget alerts ("you'll hit your limit by 4 PM at this rate")
+- ChatGPT extension companion (`GPTKarma`) under the same tokenkarma umbrella
 
-### v1.5 — Cross-Browser
+### Future ideas
 
-- [ ] Firefox Add-ons store release
-- [ ] Microsoft Edge Add-ons store release
-- [ ] Localization (FR, DE, ES, PT, JP)
+- Mac menu-bar app (paid Pro tier) tracking all your AI tools in one place
+- Multiple Claude account support
+- Slack / Discord bot for usage alerts
+- Team / organization view
 
-### Future Ideas
+## Companion Site: tokenkarma.app
 
-- Teams/Organization view
-- Desktop widgets (macOS/Windows)
-- Slack/Discord bot for usage alerts
-- Usage budgets and smart suggestions
+[tokenkarma.app](https://tokenkarma.app) is the umbrella project that ClaudeKarma is part of. The site hosts a free educational hub at [tokenkarma.app/tips](https://tokenkarma.app/tips) with verified, actionable tips to use Claude more efficiently. Future products under the same umbrella will track other AI services (ChatGPT, Cursor, Perplexity, etc.).
 
 ## Contributing
 
@@ -170,27 +222,34 @@ Full privacy policy: [PRIVACY.md](https://github.com/jrlprost/ClaudeKarma/blob/m
 4. Push to the branch
 5. Open a Pull Request
 
-Have a feature idea? [Open an issue](https://github.com/jrlprost/claudekarma_browser/issues) with the `enhancement` label.
+Have a feature idea? [Open an issue](https://github.com/jrlprost/ClaudeKarma/issues) with the `enhancement` label.
 
 ## Troubleshooting
 
 ### "Please log in" message
-- Make sure you're logged into Claude.ai in the same browser
+- Make sure you are logged into Claude.ai in the same browser
+- Try clicking the refresh button in the popup
 
 ### Data not updating
-- Click the refresh button in the popup
-- Check that you're logged into claude.ai
+- Open `chrome://extensions/`, find ClaudeKarma, click the reload icon
+- Check that you are logged into claude.ai
+- On a fresh install, the first fetch can take up to 5 minutes
+
+### Extension was disabled after update
+- Chrome disables extensions when new permissions are added (this happened in v1.1.0 with the notifications permission)
+- Re-enable it manually in `chrome://extensions/`
 
 ### Extension not loading
 - Make sure all files are present in the `src/` folder
 - Check the browser's extension error log
+- Open the service worker console to see runtime errors
 
 ## License
 
-MIT License — see [LICENSE](LICENSE) file
+MIT License: see [LICENSE](LICENSE) file
 
 ---
 
 **Note:** ClaudeKarma is an independent project and is not affiliated with Anthropic.
 
-Made with care by Jean-Rémi Larcelet-Prost
+Made with care by [Jean-Rémi Larcelet-Prost](https://jrlarcelet.com).
